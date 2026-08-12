@@ -34,6 +34,14 @@ CREATE TABLE IF NOT EXISTS recipes (
 );
 CREATE INDEX IF NOT EXISTS idx_recipes_status ON recipes(status);
 CREATE INDEX IF NOT EXISTS idx_recipes_category ON recipes(category);
+
+CREATE TABLE IF NOT EXISTS fb_captured (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    url TEXT UNIQUE NOT NULL,
+    kind TEXT NOT NULL DEFAULT 'video',
+    title TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT ''
+);
 """
 
 _SEP_RE = re.compile(r"[\s_\-\.]+")
@@ -229,3 +237,62 @@ def categories() -> list:
             "GROUP BY category ORDER BY n DESC, category COLLATE NOCASE"
         ).fetchall()
     return [{"name": r["category"], "count": r["n"]} for r in rows]
+
+
+# ------------------------------------------------------ captura de Facebook
+
+def fb_add_urls(urls: list[str]) -> int:
+    """Registra URLs capturadas de Facebook (sin duplicados). Devuelve cuántas
+    se añadieron nuevas."""
+    now = _now()
+    added = 0
+    with _lock:
+        c = conn()
+        for url in urls:
+            url = (url or "").strip()
+            if not url.startswith("http"):
+                continue
+            exists = c.execute("SELECT 1 FROM fb_captured WHERE url=?", (url,)).fetchone()
+            if exists:
+                continue
+            kind = "video" if ("fbcdn" in url or ".mp4" in url) else "link"
+            c.execute(
+                "INSERT INTO fb_captured (url, kind, title, created_at) VALUES (?,?,?,?)",
+                (url, kind, _fb_title(url), now),
+            )
+            added += 1
+        c.commit()
+    return added
+
+
+def _fb_title(url: str) -> str:
+    """Intenta dar un nombre humano a la URL capturada."""
+    return "Vídeo de Facebook"
+
+
+def fb_list() -> list:
+    with _lock:
+        rows = conn().execute(
+            "SELECT * FROM fb_captured ORDER BY id DESC"
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def fb_get(fid: int) -> dict | None:
+    with _lock:
+        row = conn().execute("SELECT * FROM fb_captured WHERE id=?", (fid,)).fetchone()
+    return dict(row) if row else None
+
+
+def fb_delete(fid: int) -> bool:
+    with _lock:
+        cur = conn().execute("DELETE FROM fb_captured WHERE id=?", (fid,))
+        conn().commit()
+    return cur.rowcount > 0
+
+
+def fb_clear() -> int:
+    with _lock:
+        cur = conn().execute("DELETE FROM fb_captured")
+        conn().commit()
+    return cur.rowcount

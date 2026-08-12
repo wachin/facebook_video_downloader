@@ -124,7 +124,11 @@ const state = {
   statusFilter: "all",
   editorId: null,
   editorDirty: false,
+  fbCaptured: [],
+  fbDownload: null,
 };
+
+let fbBookmarklet = "";
 
 const native = () => !!(window.pywebview && window.pywebview.api);
 
@@ -139,6 +143,8 @@ async function boot() {
   }
   renderSettings();
   await refreshAll();
+  const tab = new URLSearchParams(location.search).get("tab");
+  if (tab === "facebook") setView("facebook");
   setInterval(tick, 1500);
 }
 
@@ -179,9 +185,11 @@ function setView(name) {
   $$(".nav-item").forEach((el) => el.classList.toggle("active", el.dataset.view === name));
   $("#view-library").classList.toggle("hidden", name !== "library");
   $("#view-queue").classList.toggle("hidden", name !== "queue");
+  $("#view-facebook").classList.toggle("hidden", name !== "facebook");
   $("#view-settings").classList.toggle("hidden", name !== "settings");
   if (name === "library") renderLibrary();
   if (name === "queue") renderQueue();
+  if (name === "facebook") renderFacebook();
 }
 
 /* ---------------- biblioteca ---------------- */
@@ -505,6 +513,181 @@ async function wipeLibrary() {
   }
 }
 
+/* ---------------- facebook ---------------- */
+
+async function renderFacebook() {
+  await loadCaptured();
+  await checkYtdlp();
+  if (state.fbDownload?.running) pollFbStatus();
+}
+
+async function loadCaptured() {
+  try {
+    state.fbCaptured = await api("/api/fb/captured");
+  } catch (_) {
+    state.fbCaptured = [];
+  }
+  const list = $("#fb-list");
+  if (!list) return;
+  list.innerHTML = state.fbCaptured.map(fbItemHTML).join("");
+  const n = state.fbCaptured.length;
+  $("#fb-count").textContent = n ? `${n} vídeo${n === 1 ? "" : "s"} capturado${n === 1 ? "" : "s"}` : "";
+  $("#fb-download").disabled = n === 0;
+}
+
+function fbItemHTML(item) {
+  const kindLabel = item.kind === "video" ? "Vídeo directo" : "Enlace";
+  return `
+  <div class="fb-item" data-id="${item.id}">
+    <label class="fb-check"><input type="checkbox" value="${item.id}" checked></label>
+    <div class="fb-item-info">
+      <div class="fb-item-title">${esc(item.title)}</div>
+      <div class="fb-item-url" title="${esc(item.url)}">${esc(item.url)}</div>
+    </div>
+    <span class="fb-kind ${item.kind}">${kindLabel}</span>
+    <button class="btn-mini" data-act="del" title="Quitar de la lista">
+      <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2m-8 0l1 13h8l1-13"/></svg>
+    </button>
+  </div>`;
+}
+
+async function checkYtdlp() {
+  const hint = $("#fb-open-hint");
+  if (!hint) return;
+  try {
+    const info = await api("/api/fb/ytdlp");
+    hint.innerHTML = info.available
+      ? (native()
+          ? "Se abre dentro de la ventana de la app."
+          : "Se abre en tu navegador (usa el bookmarklet del paso 2).")
+      : "⚠ Falta <code>yt-dlp</code>: instálalo con <code>sudo apt install yt-dlp</code> para poder descargar.";
+  } catch (_) { /* servidor aún arrancando */ }
+}
+
+async function openFacebook() {
+  if (native()) {
+    try {
+      await window.pywebview.api.open_facebook();
+      toast("Abriendo Facebook… Inicia sesión como siempre y, en tus guardados, pulsa «📥 Enviar vídeos».");
+    } catch (_) {
+      window.open("https://www.facebook.com/saved/", "_blank");
+    }
+  } else {
+    window.open("https://www.facebook.com/saved/", "_blank");
+    toast("Facebook abierto en tu navegador. Captura con el bookmarklet del paso 2.");
+  }
+}
+
+async function captureNow() {
+  if (!native()) {
+    toast("En modo navegador usa el bookmarklet del paso 2.", "ok");
+    return;
+  }
+  const ok = await window.pywebview.api.capture_now();
+  if (ok) toast("Captura lanzada. Si estás en una página de Facebook, mira abajo a la derecha.");
+  else toast("No se pudo capturar. Abre primero Facebook con el botón del paso 1.", "err");
+}
+
+function fbBookmarkletSource() {
+  const origin = location.origin;
+  return `(function(){
+    function collect(){var urls=new Set();document.querySelectorAll('video').forEach(function(v){var s=v.currentSrc||v.src;if(!s){var src=v.querySelector('source');if(src&&src.src)s=src.src;}if(s&&s.indexOf('http')===0)urls.add(s);});document.querySelectorAll('a[href*="/watch/"],a[href*="/reel/"],a[href*="/videos/"],a[href*="/photo/"]').forEach(function(a){if(a.href&&a.href.indexOf('facebook.com')>-1)urls.add(a.href);});return Array.from(urls);}
+    var urls=collect();
+    if(!urls.length){alert('No se encontraron vídeos en esta página. Desplázate y vuelve a pulsar.');return;}
+    fetch(${JSON.stringify(origin)}+'/api/fb/capture',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({urls:urls})})
+      .then(function(r){return r.json();})
+      .then(function(j){alert('✓ Enviados '+(j.added||0)+' vídeos a Mi Recetario');})
+      .catch(function(){alert('Error al enviar. ¿Está Mi Recetario abierto?');});
+  })();`;
+}
+
+function initBookmarklet() {
+  fbBookmarklet = "javascript:" + fbBookmarkletSource();
+  const link = $("#fb-bookmark-link");
+  const code = $("#fb-bookmark-code");
+  link.href = fbBookmarklet;
+  code.value = fbBookmarklet;
+  link.style.cursor = "grab";
+}
+
+async function downloadSelected() {
+  const ids = $$("#fb-list input[type=checkbox]:checked").map((el) => +el.value);
+  if (!ids.length) {
+    toast("Marca al menos un vídeo para descargar.", "err");
+    return;
+  }
+  try {
+    const res = await api("/api/fb/download", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    });
+    toast(res.message);
+    pollFbStatus();
+  } catch (e) {
+    toast(e.message, "err");
+  }
+}
+
+function pollFbStatus() {
+  api("/api/fb/status")
+    .then((d) => {
+      state.fbDownload = d;
+      renderFbStatus();
+      if (d.running) setTimeout(pollFbStatus, 1200);
+      else if (d.items.some((i) => i.status === "done")) {
+        refreshAll();
+        loadCaptured();
+        toast("Descarga terminada. Los vídeos están en tu Biblioteca.");
+      }
+    })
+    .catch(() => { /* servidor aún arrancando */ });
+}
+
+function renderFbStatus() {
+  const wrap = $("#fb-download-progress");
+  const d = state.fbDownload;
+  if (!d || !d.items.length) {
+    wrap.innerHTML = "";
+    return;
+  }
+  const rows = d.items.map((it) => {
+    let label;
+    if (it.status === "queued") label = "En cola…";
+    else if (it.status === "downloading") label = `Descargando… ${Math.round(it.progress)}%`;
+    else if (it.status === "done") label = `✓ ${esc(it.filename || "listo")}`;
+    else if (it.status === "error") label = `⚠ ${esc(it.error)}`;
+    else if (it.status === "cancelled") label = "Cancelado";
+    else label = it.status;
+    const bar = it.status === "downloading"
+      ? `<div class="queue-progress"><i style="width:${Math.max(3, Math.round(it.progress))}%"></i></div>`
+      : "";
+    return `<div class="fb-dl-row">
+      <div class="fb-dl-title">${esc(it.title)}</div>
+      <div class="fb-dl-label">${label}</div>${bar}</div>`;
+  }).join("");
+  wrap.innerHTML = `<div class="fb-dl-box"><h4>Descargas</h4>${rows}</div>`;
+}
+
+async function removeCaptured(id) {
+  try {
+    await api(`/api/fb/captured/${id}`, { method: "DELETE" });
+    await loadCaptured();
+  } catch (e) {
+    toast(e.message, "err");
+  }
+}
+
+async function clearCaptured() {
+  const ok = await confirmDialog("¿Vaciar la lista de vídeos capturados?");
+  if (!ok) return;
+  try {
+    await api("/api/fb/clear", { method: "POST" });
+    await loadCaptured();
+  } catch (e) {
+    toast(e.message, "err");
+  }
+}
+
 /* ============================================================ editor */
 
 async function openEditor(id) {
@@ -700,6 +883,11 @@ async function tick() {
         toast("Transcripción completada.");
       }
     }
+
+    if (state.view === "facebook") {
+      loadCaptured().catch(() => {});
+      if (state.fbDownload?.running) pollFbStatus();
+    }
   } catch (_) { /* el servidor aún arrancando */ }
 }
 
@@ -863,6 +1051,23 @@ function bindStatic() {
   $("#btn-open-folder").addEventListener("click", openWatchFolder);
   document.addEventListener("click", (e) => {
     if (e.target.id === "empty-open-folder") openWatchFolder();
+  });
+
+  // Facebook
+  $("#fb-open").addEventListener("click", openFacebook);
+  $("#fb-capture").addEventListener("click", captureNow);
+  $("#fb-download").addEventListener("click", downloadSelected);
+  $("#fb-clear").addEventListener("click", clearCaptured);
+  $("#fb-bookmark-toggle").addEventListener("click", () => {
+    const box = $("#fb-bookmark");
+    box.classList.toggle("hidden");
+    if (!box.classList.contains("hidden")) initBookmarklet();
+  });
+  $("#fb-bookmark-copy").addEventListener("click", () =>
+    copyText($("#fb-bookmark-code").value).then(() => toast("Código copiado.")));
+  $("#fb-list").addEventListener("click", (e) => {
+    const btn = e.target.closest('[data-act="del"]');
+    if (btn) removeCaptured(+e.target.closest(".fb-item").dataset.id);
   });
 
   // Teclado global

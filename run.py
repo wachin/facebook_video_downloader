@@ -77,7 +77,7 @@ def main() -> None:
         width=1320,
         height=860,
         min_size=(980, 620),
-        js_api=Api(),
+        js_api=Api(app_url=url),
         background_color="#171009",
     )
     webview.start()

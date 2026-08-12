@@ -31,6 +31,10 @@
         Cola de transcripción
         <span class="nav-badge hidden" id="nav-badge">0</span>
       </button>
+      <button class="nav-item" data-view="facebook">
+        <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+        Facebook
+      </button>
       <button class="nav-item" data-view="settings">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg>
         Ajustes
@@ -95,6 +99,74 @@
         </button>
       </header>
       <div id="queue-list"></div>
+    </section>
+
+    <!-- ---- Facebook ---- -->
+    <section id="view-facebook" class="view hidden">
+      <header class="toolbar">
+        <div>
+          <h2 class="view-title">Importar desde Facebook</h2>
+          <p class="view-sub">Inicia sesión tú mismo en Facebook y captura tus vídeos guardados. Mi Recetario nunca ve tu contraseña.</p>
+        </div>
+      </header>
+
+      <div class="fb-steps">
+        <div class="fb-step">
+          <div class="fb-step-num">1</div>
+          <div class="fb-step-body">
+            <strong>Abre Facebook</strong>
+            <p>Se abre la página de tus vídeos guardados dentro de la app (o en tu navegador). Inicia sesión como siempre, con tu verificación en dos pasos.</p>
+            <div class="fb-step-actions">
+              <button id="fb-open" class="btn btn-primary">
+                <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                Abrir Facebook
+              </button>
+              <span class="faint" id="fb-open-hint"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="fb-step">
+          <div class="fb-step-num">2</div>
+          <div class="fb-step-body">
+            <strong>Captura los vídeos</strong>
+            <p>En tu página de guardados, desplázate para cargar los vídeos y pulsa el botón <em>«📥 Enviar vídeos a Mi Recetario»</em> (aparece abajo a la derecha). Luego vuelve con <em>«↩ Volver a Mi Recetario»</em>.</p>
+            <button id="fb-capture" class="btn btn-ghost">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
+              Capturar ahora (si ya estás en Facebook)
+            </button>
+            <div class="bookmark-wrap">
+              <button id="fb-bookmark-toggle" class="btn btn-mini">¿Prefieres usar tu navegador? Ver el bookmarklet</button>
+              <div id="fb-bookmark" class="bookmark-box hidden">
+                <p>Arrastra este enlace a la barra de marcadores de tu navegador y haz clic en él estando en tu página de guardados:</p>
+                <a id="fb-bookmark-link" class="bookmark-link" href="#" draggable="true">📥 Enviar a Mi Recetario</a>
+                <button id="fb-bookmark-copy" class="btn btn-mini">Copiar el código</button>
+                <textarea id="fb-bookmark-code" readonly spellcheck="false"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fb-step">
+          <div class="fb-step-num">3</div>
+          <div class="fb-step-body">
+            <strong>Selecciona y descarga</strong>
+            <p>Marca los vídeos capturados y descárgalos. Se guardan en tu carpeta de vídeos y aparecen en la Biblioteca.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="fb-download-bar">
+        <button id="fb-download" class="btn btn-primary" disabled>
+          <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Descargar seleccionados
+        </button>
+        <span class="faint" id="fb-count"></span>
+        <span class="spacer"></span>
+        <button id="fb-clear" class="btn btn-ghost">Vaciar lista</button>
+      </div>
+      <div id="fb-list" class="fb-list"></div>
+      <div id="fb-download-progress"></div>
     </section>
 
     <!-- ---- Ajustes ---- -->

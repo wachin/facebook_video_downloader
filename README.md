@@ -30,6 +30,29 @@ seguro es:
 > Servicio de Facebook y puede bloquear tu cuenta. Este programa solo gestiona
 > los vídeos que **tú** ya has descargado.
 
+### 📥 Alternativa: pestaña «Facebook» (importador guiado)
+
+Desde la pestaña **Facebook** de la app puedes capturar los vídeos de tu página
+*guardados* y descargarlos con un clic, **sin que la app vea nunca tu
+contraseña**: tú inicias sesión en Facebook como siempre (con tu verificación
+en dos pasos) en la ventana de la app o en tu navegador, y un botón flotante
+(«📥 Enviar vídeos a Mi Recetario») recopila los vídeos visibles y los envía a
+la app. Después los seleccionas y la app los descarga con `yt-dlp` a tu carpeta
+de vídeos.
+
+> ⚠️ Usar este importador implica navegar Facebook con tu cuenta; se recomienda
+> no marcar esta opción si prefieres el método 100 % manual. La captura solo
+> recoge los vídeos que **tú** ves en pantalla; no rastrea tu perfil.
+
+Para que la descarga funcione necesitas `yt-dlp` instalado:
+
+```bash
+sudo apt install yt-dlp
+```
+
+Si usas tu navegador normal en lugar de la ventana de la app, el paso 2 de la
+pestaña te ofrece un *bookmarklet* para arrastrar a la barra de marcadores.
+
 ---
 
 ## 2. Qué necesitas antes de empezar
@@ -198,6 +221,8 @@ Si tu ordenador es modesto, puedes elegir el modelo *tiny* o *base* en
 - **Cola de transcripción**: progreso en tiempo real, cancelación y reintento.
 - **Ajustes**: carpeta de vídeos, modelo de Whisper, idioma, hilos de CPU y VAD.
 - **Importar**: arrastra vídeos a la ventana para copiarlos a tu carpeta.
+- **Facebook**: captura tus vídeos guardados con tu propia sesión (sin guardar
+  contraseñas) y descárgalos con `yt-dlp` directamente a tu carpeta.
 
 ---
 

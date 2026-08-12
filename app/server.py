@@ -6,7 +6,7 @@ import re
 
 from flask import Flask, Response, abort, jsonify, request, send_file
 
-from . import config, database as db, scanner
+from . import config, database as db, fb, scanner
 from .transcription import manager
 
 VIDEO_MIME = {
@@ -63,6 +63,33 @@ def create_app() -> Flask:
 
     def json_error(message: str, code: int = 400):
         return jsonify({"error": message}), code
+
+    FB_ALLOWED_ORIGINS = frozenset({
+        "https://www.facebook.com", "https://m.facebook.com",
+        "https://web.facebook.com", "https://facebook.com",
+    })
+
+    def fb_origin_allowed() -> bool:
+        """La captura se envía desde una página de Facebook (otro origen).
+        Solo se aceptan orígenes de Facebook o la propia app: así ninguna web
+        maliciosa puede disparar descargas contra el servidor local
+        (CSRF/DNS-rebinding)."""
+        origin = request.headers.get("Origin", "")
+        if not origin:
+            return True  # peticiones de la propia app o de herramientas
+        if origin.startswith("http://127.0.0.1") or origin.startswith("http://localhost"):
+            return True
+        return origin in FB_ALLOWED_ORIGINS
+
+    @app.after_request
+    def add_cors(resp: Response):
+        if request.path.startswith("/api/fb/"):
+            if fb_origin_allowed():
+                resp.headers["Access-Control-Allow-Origin"] = \
+                    request.headers.get("Origin") or "*"
+                resp.headers["Access-Control-Allow-Methods"] = "POST, GET, DELETE, OPTIONS"
+                resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        return resp
 
     # ------------------------------------------------------------- ajustes
 
@@ -140,6 +167,59 @@ def create_app() -> Flask:
                 return json_error(f"No se pudo borrar el vídeo: {exc}", 500)
         db.delete_recipe(rid)
         return jsonify({"ok": True})
+
+    # ------------------------------------------------------------- Facebook
+
+    @app.post("/api/fb/capture")
+    def fb_capture():
+        if not fb_origin_allowed():
+            return json_error("Origen no permitido.", 403)
+        data = request.get_json(silent=True) or {}
+        urls = data.get("urls") or []
+        if not isinstance(urls, list):
+            urls = []
+        return jsonify({"ok": True, "added": db.fb_add_urls(urls)})
+
+    @app.get("/api/fb/captured")
+    def fb_captured():
+        return jsonify(db.fb_list())
+
+    @app.delete("/api/fb/captured/<int:fid>")
+    def fb_captured_delete(fid):
+        if not fb_origin_allowed():
+            return json_error("Origen no permitido.", 403)
+        return jsonify({"ok": db.fb_delete(fid)})
+
+    @app.post("/api/fb/clear")
+    def fb_clear():
+        if not fb_origin_allowed():
+            return json_error("Origen no permitido.", 403)
+        return jsonify({"ok": True, "removed": db.fb_clear()})
+
+    @app.post("/api/fb/download")
+    def fb_download():
+        if not fb_origin_allowed():
+            return json_error("Origen no permitido.", 403)
+        data = request.get_json(silent=True) or {}
+        ids = [int(i) for i in (data.get("ids") or []) if str(i).isdigit()]
+        ok, message = fb.downloader.start(ids)
+        return (jsonify({"ok": ok, "message": message}) if ok
+                else json_error(message, 409))
+
+    @app.post("/api/fb/cancel")
+    def fb_cancel():
+        if not fb_origin_allowed():
+            return json_error("Origen no permitido.", 403)
+        return jsonify({"ok": fb.downloader.cancel()})
+
+    @app.get("/api/fb/status")
+    def fb_status():
+        return jsonify(fb.downloader.status())
+
+    @app.get("/api/fb/ytdlp")
+    def fb_ytdlp():
+        path = fb.find_ytdlp()
+        return jsonify({"available": bool(path), "path": path})
 
     # ------------------------------------------------------------- transcripción
 

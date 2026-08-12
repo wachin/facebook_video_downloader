@@ -640,6 +640,86 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ============================================================
+   Facebook — importador guiado
+   ============================================================ */
+
+.fb-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px; }
+.fb-step {
+  display: flex; gap: 14px; padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(224, 123, 79, 0.14);
+  border-radius: 14px;
+}
+.fb-step-num {
+  flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #1a120a; font-weight: 800; font-size: 15px;
+  display: grid; place-items: center;
+}
+.fb-step-body { flex: 1; min-width: 0; }
+.fb-step-body strong { font-size: 15px; display: block; margin-bottom: 3px; }
+.fb-step-body p { margin: 0 0 12px; font-size: 13px; color: var(--faint); line-height: 1.55; }
+.fb-step-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.bookmark-wrap { margin-top: 12px; }
+.bookmark-box {
+  margin-top: 10px; padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(224, 123, 79, 0.35); border-radius: 10px;
+}
+.bookmark-box p { margin: 0 0 10px; font-size: 12.5px; color: var(--faint); }
+.bookmark-link {
+  display: inline-block; padding: 8px 14px; border-radius: 8px;
+  background: var(--accent); color: #1a120a; font-weight: 700; font-size: 13px;
+  text-decoration: none; margin-bottom: 8px;
+}
+.bookmark-link:hover { filter: brightness(1.08); }
+.bookmark-box textarea {
+  width: 100%; height: 70px; margin-top: 8px;
+  font-family: var(--mono, monospace); font-size: 10.5px;
+  background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px; color: var(--text); padding: 8px; resize: vertical;
+}
+
+.fb-download-bar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 4px 10px; border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.fb-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.fb-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 12px;
+}
+.fb-check { display: flex; align-items: center; }
+.fb-check input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.fb-item-info { flex: 1; min-width: 0; }
+.fb-item-title { font-size: 13.5px; font-weight: 600; }
+.fb-item-url {
+  font-size: 11px; color: var(--faint);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fb-kind {
+  flex: 0 0 auto; font-size: 10.5px; font-weight: 700; letter-spacing: 0.4px;
+  padding: 3px 9px; border-radius: 999px; text-transform: uppercase;
+}
+.fb-kind.video { background: rgba(157, 180, 141, 0.16); color: #b7d2a9; }
+.fb-kind.link { background: rgba(224, 123, 79, 0.16); color: #eda17f; }
+.fb-empty { padding: 26px; text-align: center; color: var(--faint); font-size: 13.5px; }
+
+.fb-dl-box {
+  margin-top: 18px; padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 14px;
+}
+.fb-dl-box h4 { margin: 0 0 10px; font-size: 13px; color: var(--accent2); }
+.fb-dl-row { padding: 7px 0; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+.fb-dl-row:first-of-type { border-top: none; }
+.fb-dl-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.fb-dl-label { font-size: 12px; color: var(--faint); margin-bottom: 5px; }
+
+/* ============================================================
    Responsive
    ============================================================ */
 @media (max-width: 900px) {
