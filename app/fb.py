@@ -73,19 +73,33 @@ def build_capture_script(server_url: str) -> str:
     }
   }
 
-  var d = document.createElement('div');
-  d.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:2147483647;display:flex;flex-direction:column;gap:8px;font-family:sans-serif;';
-  var b1 = document.createElement('button');
-  b1.textContent = '📥 Enviar vídeos a Mi Recetario';
-  b1.style.cssText = 'border:0;background:#d97706;color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.4);';
-  b1.onclick = send;
-  var b2 = document.createElement('button');
-  b2.textContent = '↩ Volver a Mi Recetario';
-  b2.style.cssText = 'border:0;background:#111827;color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.4);';
-  b2.onclick = goHome;
-  d.appendChild(b1);
-  d.appendChild(b2);
-  document.body.appendChild(d);
+  // Espera a que document.body exista antes de tocar el DOM. Aunque el botón
+  // se inyecte durante la carga (p. ej. por un bookmarklet), no falla nunca.
+  function whenReady(fn) {
+    if (document.body) { fn(); return; }
+    var tries = 0;
+    var timer = setInterval(function () {
+      tries++;
+      if (document.body) { clearInterval(timer); fn(); }
+      else if (tries > 100) { clearInterval(timer); }
+    }, 100);
+  }
+
+  whenReady(function () {
+    var d = document.createElement('div');
+    d.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:2147483647;display:flex;flex-direction:column;gap:8px;font-family:sans-serif;';
+    var b1 = document.createElement('button');
+    b1.textContent = '📥 Enviar vídeos a Mi Recetario';
+    b1.style.cssText = 'border:0;background:#d97706;color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.4);';
+    b1.onclick = send;
+    var b2 = document.createElement('button');
+    b2.textContent = '↩ Volver a Mi Recetario';
+    b2.style.cssText = 'border:0;background:#111827;color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.4);';
+    b2.onclick = goHome;
+    d.appendChild(b1);
+    d.appendChild(b2);
+    document.body.appendChild(d);
+  });
 })();
 """ % {"url": server_url}
 

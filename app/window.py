@@ -15,11 +15,18 @@ from . import fb
 
 FB_URL = "https://www.facebook.com/saved/"
 
+# Retraso antes de navegar (segundos). La página de la app registra un
+# callback en el puente de pywebview cuando el frontend llama a un método API;
+# si la ventana cambia de URL en ese mismo instante, el callback se pierde y
+# pywebview lanza JavascriptException. Un pequeño retraso permite que el valor
+# de retorno llegue al frontend antes de empezar la navegación.
+NAV_DELAY = 1.0
+
 
 class Api:
     def __init__(self, app_url: str = "http://127.0.0.1:8000/") -> None:
         self.app_url = app_url.rstrip("/") + "/"
-        self._injecting = False
+        self._injector_armed = False
 
     # ------------------------------------------------------ utilidades
 
@@ -46,13 +53,18 @@ class Api:
     # ------------------------------------------------------ Facebook
 
     def open_facebook(self) -> bool:
-        """Abre Facebook (página de guardados). En la ventana nativa navega
-        la propia ventana e inyecta un botón flotante; fuera de ella abre el
-        navegador normal (ahí se usa el bookmarklet)."""
+        """Abre Facebook (página de guardados) en la propia ventana.
+
+        No navega de forma síncrona: devuelve `True` de inmediato (para que
+        pywebview entregue el valor de retorno al frontend de la app) y la
+        navegación se lanza desde un hilo con un pequeño retraso.
+        """
         try:
             window = webview.windows[0]
-            window.load_url(FB_URL)
-            self._watch_facebook(window)
+            self._arm_injector(window)
+            threading.Thread(
+                target=self._navigate_later, args=(window, FB_URL), daemon=True
+            ).start()
             return True
         except Exception:
             webbrowser.open(FB_URL)
@@ -61,55 +73,67 @@ class Api:
     def go_home(self) -> None:
         """Vuelve a la interfaz de Mi Recetario (desde la página de Facebook)."""
         try:
-            webview.windows[0].load_url(self.app_url + "?tab=facebook")
+            window = webview.windows[0]
+            threading.Thread(
+                target=self._navigate_later,
+                args=(window, self.app_url + "?tab=facebook"),
+                daemon=True,
+            ).start()
         except Exception:
             webbrowser.open(self.app_url + "?tab=facebook")
 
     def capture_now(self) -> bool:
-        """Ejecuta la captura de vídeos en la página de Facebook actual."""
+        """Inyecta el botón de captura en la página de Facebook actual.
+
+        Solo actúa si la ventana está mostrando una página de Facebook; si está
+        en la propia app no hace nada (evita inyectar el botón en la interfaz).
+        """
         try:
             window = webview.windows[0]
-            js = fb.build_capture_script(self.app_url.rstrip("/"))
-            window.evaluate_js(js)
+            url = window.get_current_url() or ""
+            if "facebook.com" not in url:
+                return False
+            window.run_js(fb.build_capture_script(self.app_url.rstrip("/")))
             return True
         except Exception:
             return False
 
     # ------------------------------------------------------ interno
 
-    def _watch_facebook(self, window) -> None:
-        """Hilo que inyecta el botón flotante en cuanto la ventana está en una
-        página de Facebook, y que se detiene al volver a la app."""
-        if self._injecting:
+    def _navigate_later(self, window, url: str) -> None:
+        """Espera un instante y navega, dejando tiempo a pywebview para
+        entregar el valor de retorno de la llamada API que originó la
+        navegación (evita JavascriptException por callback perdido)."""
+        time.sleep(NAV_DELAY)
+        try:
+            window.load_url(url)
+        except Exception:
+            pass
+
+    def _arm_injector(self, window) -> None:
+        """Registra una sola vez la inyección del botón flotante.
+
+        Se escucha el evento `loaded` de pywebview, que se dispara justo cuando
+        una página termina de cargar y el puente JS ya está inyectado (por eso
+        `document.body` existe y no hay errores de `null`). Cada carga completa
+        dentro de Facebook vuelve a dispararlo, así el botón se reinyecta solo
+        tras cada navegación de la SPA.
+        """
+        if self._injector_armed:
             return
-        self._injecting = True
+        self._injector_armed = True
+        window.events.loaded += self._on_page_loaded
 
-        def loop() -> None:
-            try:
-                last_url = ""
-                while True:
-                    try:
-                        url = window.get_current_url() or ""
-                    except Exception:
-                        break
-                    if "facebook.com" in url:
-                        # Facebook es una SPA: cada navegación completa recarga
-                        # la página y se pierde el botón, así que se reinyecta
-                        # siempre que cambie la URL.
-                        if url != last_url:
-                            try:
-                                window.evaluate_js(
-                                    fb.build_capture_script(self.app_url.rstrip("/"))
-                                )
-                                last_url = url
-                            except Exception:
-                                pass  # página aún cargando; se reintenta en 2s
-                    else:
-                        # De vuelta en la app: no hace falta seguir vigilando.
-                        if url and url.startswith(self.app_url):
-                            break
-                    time.sleep(2)
-            finally:
-                self._injecting = False
-
-        threading.Thread(target=loop, daemon=True).start()
+    def _on_page_loaded(self, window) -> None:
+        """Callback del evento `loaded`: inyecta el botón si es una página de
+        Facebook, y no hace nada en la propia app."""
+        try:
+            url = window.get_current_url() or ""
+        except Exception:
+            return
+        if "facebook.com" not in url:
+            return
+        try:
+            window.run_js(fb.build_capture_script(self.app_url.rstrip("/")))
+        except Exception:
+            pass
