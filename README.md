@@ -161,16 +161,23 @@ Es la misma app, sin pasos extra. Mucha gente lo usa directamente.
 
 ## 6. Cómo usar el programa
 
+### Opción A — ventana nativa de escritorio (recomendada)
+
 ```bash
-# Opción A — ventana nativa de escritorio (recomendada)
 venv/bin/python run.py
+```
 
 ![](images/01-recipe_book_downloader.png)
 
-# Opción B — en el navegador
-venv/bin/python run.py --web
+### Opción B — en el navegador
 
-# Opción C — solo el servidor interno (para pruebas / API)
+```bash
+venv/bin/python run.py --web
+```
+
+### Opción C — solo el servidor interno (para pruebas / API)
+
+```bash
 venv/bin/python run.py --serve --port 8765
 ```
 
