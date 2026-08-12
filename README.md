@@ -165,6 +165,8 @@ Es la misma app, sin pasos extra. Mucha gente lo usa directamente.
 # Opción A — ventana nativa de escritorio (recomendada)
 venv/bin/python run.py
 
+![](images/01-recipe_book_downloader.png)
+
 # Opción B — en el navegador
 venv/bin/python run.py --web
 
@@ -210,9 +212,9 @@ ingredientes si hace falta.)
 
 ## 9. Solución de problemas
 
-| Problema | Solución |
-|---|---|
-| `python3: command not found` | Instala Python: `sudo apt install python3` |
+|  Problema | Solución |
+|--- |---|
+| `python3: command not found`  | Instala Python: `sudo apt install python3` |
 | `ensurepip is not available` o falta `venv` | Instala el módulo: `sudo apt install python3-venv` y repite el Paso 2 |
 | `error: externally-managed-environment` | Es normal en Debian/MX: significa que pip no debe tocar el sistema. **Activa el venv** (Paso 3) y repite el Paso 4 |
 | El venv está "roto" o algo raro ocurre | Bórralo y créalo de nuevo: `rm -rf venv` y repite los pasos 2 a 4. Tus recetas no se pierden (están en `data/`) |
