@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi Recetario</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍲</text></svg>">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ BARRA LATERAL ============ -->
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">🍲</div>
+      <div>
+        <div class="brand-name">Mi Recetario</div>
+        <div class="brand-sub">Recetas de cocina en vídeo</div>
+      </div>
+    </div>
+
+    <nav id="nav">
+      <button class="nav-item active" data-view="library">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+        Biblioteca
+        <span class="nav-count" id="nav-count"></span>
+      </button>
+      <button class="nav-item" data-view="queue">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Cola de transcripción
+        <span class="nav-badge hidden" id="nav-badge">0</span>
+      </button>
+      <button class="nav-item" data-view="settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg>
+        Ajustes
+      </button>
+    </nav>
+
+    <div class="side-stats" id="side-stats"></div>
+
+    <div class="side-footer">
+      <button class="side-link" id="btn-open-folder">
+        <svg viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        Abrir carpeta de vídeos
+      </button>
+      <div class="side-version">v1.0 · local y privado</div>
+    </div>
+  </aside>
+
+  <!-- ============ CONTENIDO ============ -->
+  <main id="main">
+
+    <!-- ---- Biblioteca ---- -->
+    <section id="view-library" class="view">
+      <header class="toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="search-input" type="search" placeholder="Buscar por título, ingredientes o texto…" autocomplete="off">
+        </div>
+        <div class="toolbar-actions">
+          <button id="btn-import" class="btn btn-ghost" title="Importar vídeos desde el equipo">
+            <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Importar
+          </button>
+          <button id="btn-rescan" class="btn btn-ghost" title="Escanear la carpeta de vídeos">
+            <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2 5.3"/><path d="M20 4v7h-7"/></svg>
+          </button>
+        </div>
+        <input id="file-input" type="file" accept="video/*" multiple hidden>
+      </header>
+
+      <div class="filter-row" id="filter-row"></div>
+
+      <div id="dropzone" class="dropzone">
+        <div class="drop-hint">
+          <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Suelta los vídeos aquí para importarlos
+        </div>
+        <div id="library-grid" class="grid"></div>
+        <div id="empty-state" class="empty hidden"></div>
+      </div>
+    </section>
+
+    <!-- ---- Cola ---- -->
+    <section id="view-queue" class="view hidden">
+      <header class="toolbar">
+        <div>
+          <h2 class="view-title">Cola de transcripción</h2>
+          <p class="view-sub">Los vídeos pendientes se convierten en texto con Whisper, en tu propio equipo.</p>
+        </div>
+        <button id="btn-transcribe-all" class="btn btn-primary">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          Transcribir todo
+        </button>
+      </header>
+      <div id="queue-list"></div>
+    </section>
+
+    <!-- ---- Ajustes ---- -->
+    <section id="view-settings" class="view hidden">
+      <h2 class="view-title">Ajustes</h2>
+      <p class="view-sub">Configura dónde están tus vídeos y cómo se transcriben.</p>
+      <div class="settings-grid" id="settings-form"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ EDITOR DE RECETA ============ -->
+<div id="editor" class="overlay hidden">
+  <div class="editor-panel" role="dialog" aria-label="Editor de receta">
+    <header class="editor-header">
+      <div class="ed-title-wrap">
+        <input id="ed-title" class="ed-title" placeholder="Título de la receta" autocomplete="off">
+        <span class="ed-title-underline"></span>
+      </div>
+      <div class="editor-actions">
+        <button id="ed-transcribe" class="btn btn-ghost" title="Transcribir este vídeo">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          Transcribir
+        </button>
+        <button id="ed-export" class="btn btn-ghost" title="Exportar a Markdown">
+          <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Exportar
+        </button>
+        <button id="ed-close" class="btn btn-icon" title="Cerrar (Esc)">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="editor-body">
+      <div class="ed-col ed-left">
+        <div class="video-wrap">
+          <video id="ed-video" controls preload="metadata"></video>
+          <div class="video-missing hidden" id="ed-video-missing">
+            El archivo de vídeo no se encuentra.
+          </div>
+        </div>
+
+        <div class="transcript-panel">
+          <div class="panel-head">
+            <span class="panel-title">
+              <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+              Transcripción
+            </span>
+            <span class="trans-status" id="ed-trans-status"></span>
+            <span class="spacer"></span>
+            <button id="ed-copy-trans" class="btn btn-mini">
+              <svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+              Copiar
+            </button>
+          </div>
+          <textarea id="ed-transcript" placeholder="El texto transcrito aparecerá aquí. También puedes editarlo a mano."></textarea>
+          <div class="transcript-meta" id="ed-trans-meta"></div>
+        </div>
+      </div>
+
+      <div class="ed-col ed-right">
+        <div class="panel-head"><span class="panel-title">Detalles</span></div>
+        <div class="field">
+          <label for="ed-category">Categoría</label>
+          <input id="ed-category" list="cat-list" placeholder="p. ej. Postres" autocomplete="off">
+          <datalist id="cat-list"></datalist>
+        </div>
+        <div class="field">
+          <label for="ed-tags">Etiquetas <span class="faint">(separadas por coma)</span></label>
+          <input id="ed-tags" placeholder="sin gluten, rápido, 30 min…" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Vídeo de origen</label>
+          <div class="source-path" id="ed-source"></div>
+        </div>
+
+        <div class="panel-head list-head">
+          <span class="panel-title">
+            <svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
+            Ingredientes
+          </span>
+          <button id="ed-add-ing" class="btn btn-mini">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            Añadir
+          </button>
+        </div>
+        <div id="ed-ingredients" class="list-editor"></div>
+
+        <div class="panel-head list-head">
+          <span class="panel-title">
+            <svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>
+            Pasos
+          </span>
+          <button id="ed-add-step" class="btn btn-mini">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            Añadir
+          </button>
+        </div>
+        <div id="ed-steps" class="list-editor"></div>
+
+        <div class="panel-head"><span class="panel-title">Notas</span></div>
+        <textarea id="ed-notes" rows="3" placeholder="Trucos, variaciones, a quién se la dedicas…"></textarea>
+      </div>
+    </div>
+
+    <footer class="editor-footer">
+      <span class="ed-hint">Ctrl+S para guardar · Esc para cerrar</span>
+      <div class="editor-footer-actions">
+        <button id="ed-cancel" class="btn btn-ghost">Cancelar</button>
+        <button id="ed-save" class="btn btn-primary">
+          <svg viewBox="0 0 24 24"><path d="M5 3h11l5 5v13H5z"/><path d="M8 3v6h7V3M8 21v-7h8v7"/></svg>
+          Guardar receta
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+<div class="busy-overlay hidden" id="busy">
+  <div class="spinner"></div>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
