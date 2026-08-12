@@ -1,0 +1,31 @@
+# ── Entorno virtual ─────────────────────────────────────────
+venv/
+.venv/
+env/
+
+# ── Datos generados por la app en tiempo de ejecución ───────
+# Base de datos SQLite, ajustes y miniaturas (no deben ir al repo)
+data/
+
+# ── Caché de Python ─────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Modelos de Whisper descargados ──────────────────────────
+# faster-whisper guarda los modelos en ~/.cache/huggingface
+.cache/huggingface/
+
+# ── Sistema operativo ───────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── Editores / IDE ──────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*~
