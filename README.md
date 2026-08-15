@@ -16,73 +16,76 @@ Un programa de escritorio para tu colección de **vídeos de recetas de Facebook
 
 ## 1. Cómo conseguir los vídeos de Facebook
 
-Facebook no permite que ningún programa acceda a tus *colecciones guardadas*
-automáticamente (ni su API ni `yt-dlp` pueden leerlas). El flujo recomendado y
-seguro es:
+Mi Recetario incluye un **importador de Facebook** integrado: captura los
+vídeos de tus *colecciones guardadas* y los descarga con un clic, sin
+necesidad de herramientas externas.
 
-1. En Facebook, abre el vídeo y pulsa **clic derecho → «Guardar vídeo como…»**.
-   (También vale usar un descargador individual como `yt-dlp` pegando la URL.)
-2. Deja los archivos en la carpeta de vídeos de la app (por defecto
-   `~/Videos/Recetas`).
-3. Abre Mi Recetario, pulsa **Escanear** y el vídeo aparece en la Biblioteca.
+### 📥 El flujo recomendado: la pestaña «Facebook»
 
-> ⚠️ Automatizar la descarga de toda la colección viola los Términos de
-> Servicio de Facebook y puede bloquear tu cuenta. Este programa solo gestiona
-> los vídeos que **tú** ya has descargado.
+1. Abre Mi Recetario y pulsa **Facebook → Abrir Facebook**. Se abre una
+   **ventana nueva** con Facebook y Mi Recetario se queda abierto en la suya.
+2. Inicia sesión en Facebook como siempre, con tu verificación en dos pasos si
+   la tienes. **Solo la primera vez**: la sesión se recuerda entre ejecuciones
+   (la app guarda las cookies en `data/webview/`).
+3. Entra a una colección de tus guardados. Abajo a la derecha verás un panel
+   con tres botones:
+   - **«⬇️ Descargar toda la colección»** — recorre toda la colección
+     automáticamente (Facebook va cargando más vídeos al llegar abajo),
+     recopila todos los vídeos y arranca la descarga con `yt-dlp`.
+   - **«📥 Enviar vídeos visibles»** — envía solo los vídeos que se ven en
+     pantalla.
+   - **«↩ Cerrar Facebook»** — cierra la ventana de Facebook; Mi Recetario
+     sigue abierto.
+4. Verás un aviso verde al empezar la descarga. Su **progreso se ve en vivo**
+   en la ventana de Mi Recetario: la pestaña **Facebook** muestra la lista por
+   vídeo con su barra de porcentaje, y mientras se descarga aparece también un
+   **indicador inferior** visible desde cualquier pestaña (pulsarlo te lleva a
+   la lista). Al terminar, los vídeos quedan en tu carpeta y aparecen en la
+   **Biblioteca**.
 
-### 📥 Alternativa: pestaña «Facebook» (importador guiado)
-
-Desde la pestaña **Facebook** de la app puedes capturar los vídeos de tu página
-*guardados* y descargarlos con un clic, **sin que la app vea nunca tu
-contraseña**: tú inicias sesión en Facebook como siempre (con tu verificación
-en dos pasos) y un botón flotante («⬇️ Descargar toda la colección») baja
-automáticamente por toda la colección, recopila todos los vídeos y los descarga
-con `yt-dlp` a tu carpeta de vídeos. También hay un botón «📥 Enviar vídeos
-visibles» para capturar solo lo que se ve en pantalla, y «↩ Cerrar Facebook»
-para cerrar la ventana de Facebook.
-
-**Dos ventanas**: al pulsar «Abrir Facebook» se abre una **ventana nueva** y Mi
-Recetario se queda abierto en la suya. Así puedes ver el **progreso de la
-descarga en vivo** (pestaña Facebook, o el indicador inferior que aparece desde
-cualquier pestaña mientras se descarga) mientras navegas por tus colecciones.
-
-> ⚠️ Usar este importador implica navegar Facebook con tu cuenta; se recomienda
-> no marcar esta opción si prefieres el método 100 % manual. La captura solo
-> recoge los vídeos que **tú** ves en pantalla; no rastrea tu perfil.
-
-Para que la descarga funcione necesitas `yt-dlp` instalado:
+Para que la descarga funcione, instala `yt-dlp` (solo hace falta una vez):
 
 ```bash
 sudo apt install yt-dlp
 ```
 
-Si usas tu navegador normal en lugar de la ventana de la app, el paso 2 de la
-pestaña te ofrece un *bookmarklet* para arrastrar a la barra de marcadores.
+> 🔑 **Colecciones privadas**: tus listas guardadas son privadas, pero el botón
+> las lee igualmente porque corre dentro de tu sesión iniciada. Para
+> **descargar** esos vídeos, al capturar la app exporta las cookies de tu
+> sesión a `data/cookies/fb_cookies.txt` y se las pasa a `yt-dlp`, que así
+> descarga con tu sesión (no con el navegador). Si caducan, vuelve a abrir
+> Facebook desde la app y captura de nuevo: se refrescan solas.
 
-> 🔐 **La sesión se recuerda**: la app guarda las cookies de Facebook en
-> `data/webview/` (carpeta del proyecto), así que no tendrás que volver a
-> iniciar sesión cada vez que la abras. Inicia sesión una sola vez y la app la
-> mantiene entre ejecuciones.
-
-> 🔒 **HTTPS local**: en la ventana nativa la app se sirve por HTTPS con un
-> certificado autofirmado (se genera solo con `openssl` en `data/cert/`). Es
-> necesario porque Facebook es HTTPS y WebKitGTK bloquea los envíos desde una
-> página segura hacia `http://127.0.0.1` (contenido mixto). Todo sigue siendo
-> local: el servidor solo escucha en 127.0.0.1.
+> 🔒 **HTTPS local**: la app se sirve por HTTPS con un certificado autofirmado
+> (se genera solo con `openssl` en `data/cert/`). Es necesario porque Facebook
+> es HTTPS y WebKitGTK bloquea los envíos desde una página segura hacia
+> `http://127.0.0.1` (contenido mixto). Todo sigue siendo local: el servidor
+> solo escucha en 127.0.0.1.
 
 > 📡 **Cómo se envían los vídeos a la app**: Facebook impone una política de
 > seguridad (CSP) que prohíbe a cualquier página suya hacer *fetch* hacia
 > `127.0.0.1`. Por eso el botón flotante **no usa HTTP**: envía los vídeos por
-> el **canal nativo de WebKit** (el mismo puente interno de pywebview), que va
+> el **canal nativo de WebKit** (el puente interno de pywebview), que llega
 > directo a la app sin pasar por la red. Ni el CSP, ni CORS ni el contenido
 > mixto pueden bloquearlo.
 
-> 🔑 **Colecciones privadas**: tus listas guardadas son privadas, pero el botón
-> las lee igualmente (corre dentro de tu sesión iniciada). Para **descargar**
-> los vídeos privados, al capturar la app exporta las cookies de tu sesión a
-> `data/cookies/fb_cookies.txt` y se las pasa a `yt-dlp` (que descarga con su
-> propio cliente, no con el navegador). Si alguna vez caducan, vuelve a abrir
-> Facebook desde la app y captura de nuevo para refrescarlas.
+### 🖱️ Alternativa manual (sin usar la pestaña Facebook)
+
+Si prefieres el método 100 % manual, también puedes:
+
+1. En Facebook, abre el vídeo y pulsa **clic derecho → «Guardar vídeo como…»**
+   (o usa un descargador individual como `yt-dlp` pegando la URL).
+2. Deja los archivos en la carpeta de vídeos de la app (por defecto
+   `~/Videos/Recetas`).
+3. Abre Mi Recetario, pulsa **Escanear** y el vídeo aparece en la Biblioteca.
+
+En ese caso, la pestaña Facebook te ofrece también un *bookmarklet* para
+arrastrar a la barra de marcadores de tu navegador y capturar desde allí.
+
+> ⚠️ El importador navega Facebook con tu cuenta (igual que harías tú a mano)
+> y solo recoge los vídeos que **tú** ves en pantalla; no rastrea tu perfil ni
+> el de nadie. Como con cualquier automatización, conviene usarlo con
+> moderación para no llamar la atención sobre tu cuenta.
 
 ---
 
@@ -252,8 +255,9 @@ Si tu ordenador es modesto, puedes elegir el modelo *tiny* o *base* en
 - **Cola de transcripción**: progreso en tiempo real, cancelación y reintento.
 - **Ajustes**: carpeta de vídeos, modelo de Whisper, idioma, hilos de CPU y VAD.
 - **Importar**: arrastra vídeos a la ventana para copiarlos a tu carpeta.
-- **Facebook**: captura tus vídeos guardados con tu propia sesión (sin guardar
-  contraseñas) y descárgalos con `yt-dlp` directamente a tu carpeta.
+- **Facebook**: se abre en una **ventana propia** (Mi Recetario sigue abierto),
+  captura tus vídeos guardados con tu propia sesión y los descarga con
+  `yt-dlp` a tu carpeta, con el **progreso en vivo** desde cualquier pestaña.
 
 ---
 
@@ -283,6 +287,8 @@ ingredientes si hace falta.)
 | El venv está "roto" o algo raro ocurre | Bórralo y créalo de nuevo: `rm -rf venv` y repite los pasos 2 a 4. Tus recetas no se pierden (están en `data/`) |
 | La transcripción tarda mucho | Elige un modelo más pequeño en **Ajustes** (tiny o base) |
 | La descarga del modelo falla a mitad | Vuelve a intentarlo: reanuda donde se quedó. Si falla siempre, revisa tu conexión o proxy |
+| Los vídeos privados de Facebook no se descargan (error de autenticación) | Las cookies caducaron. Abre Facebook desde la app y captura de nuevo: la app las refresca automáticamente |
+| No veo el progreso de la descarga | Mientras se descarga, hay un indicador inferior en cualquier pestaña; la lista completa por vídeo está en la pestaña Facebook |
 
 ---
 
