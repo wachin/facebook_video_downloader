@@ -660,6 +660,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .fb-step-body strong { font-size: 15px; display: block; margin-bottom: 3px; }
 .fb-step-body p { margin: 0 0 12px; font-size: 13px; color: var(--faint); line-height: 1.55; }
 .fb-step-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fb-feature-list { margin: 0 0 12px; padding-left: 18px; }
+.fb-feature-list li { font-size: 13px; color: var(--faint); line-height: 1.6; margin-bottom: 4px; }
 
 .bookmark-wrap { margin-top: 12px; }
 .bookmark-box {
@@ -718,6 +720,35 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .fb-dl-row:first-of-type { border-top: none; }
 .fb-dl-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
 .fb-dl-label { font-size: 12px; color: var(--faint); margin-bottom: 5px; }
+
+/* Indicador global de descarga: visible desde cualquier pestaña */
+#fb-mini-progress {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 9px 14px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+#fb-mini-progress .fb-mini-icon { font-size: 15px; }
+#fb-mini-progress .fb-mini-label { font-size: 12px; color: var(--text); font-weight: 600; }
+#fb-mini-progress .fb-mini-bar {
+  width: 140px; height: 5px; margin-top: 5px;
+  background: rgba(255, 255, 255, 0.08); border-radius: 99px; overflow: hidden;
+}
+#fb-mini-progress .fb-mini-bar i {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 99px; transition: width 0.4s ease;
+}
 
 /* ============================================================
    Responsive

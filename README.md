@@ -35,10 +35,16 @@ seguro es:
 Desde la pestaña **Facebook** de la app puedes capturar los vídeos de tu página
 *guardados* y descargarlos con un clic, **sin que la app vea nunca tu
 contraseña**: tú inicias sesión en Facebook como siempre (con tu verificación
-en dos pasos) en la ventana de la app o en tu navegador, y un botón flotante
-(«📥 Enviar vídeos a Mi Recetario») recopila los vídeos visibles y los envía a
-la app. Después los seleccionas y la app los descarga con `yt-dlp` a tu carpeta
-de vídeos.
+en dos pasos) y un botón flotante («⬇️ Descargar toda la colección») baja
+automáticamente por toda la colección, recopila todos los vídeos y los descarga
+con `yt-dlp` a tu carpeta de vídeos. También hay un botón «📥 Enviar vídeos
+visibles» para capturar solo lo que se ve en pantalla, y «↩ Cerrar Facebook»
+para cerrar la ventana de Facebook.
+
+**Dos ventanas**: al pulsar «Abrir Facebook» se abre una **ventana nueva** y Mi
+Recetario se queda abierto en la suya. Así puedes ver el **progreso de la
+descarga en vivo** (pestaña Facebook, o el indicador inferior que aparece desde
+cualquier pestaña mientras se descarga) mientras navegas por tus colecciones.
 
 > ⚠️ Usar este importador implica navegar Facebook con tu cuenta; se recomienda
 > no marcar esta opción si prefieres el método 100 % manual. La captura solo
@@ -57,6 +63,26 @@ pestaña te ofrece un *bookmarklet* para arrastrar a la barra de marcadores.
 > `data/webview/` (carpeta del proyecto), así que no tendrás que volver a
 > iniciar sesión cada vez que la abras. Inicia sesión una sola vez y la app la
 > mantiene entre ejecuciones.
+
+> 🔒 **HTTPS local**: en la ventana nativa la app se sirve por HTTPS con un
+> certificado autofirmado (se genera solo con `openssl` en `data/cert/`). Es
+> necesario porque Facebook es HTTPS y WebKitGTK bloquea los envíos desde una
+> página segura hacia `http://127.0.0.1` (contenido mixto). Todo sigue siendo
+> local: el servidor solo escucha en 127.0.0.1.
+
+> 📡 **Cómo se envían los vídeos a la app**: Facebook impone una política de
+> seguridad (CSP) que prohíbe a cualquier página suya hacer *fetch* hacia
+> `127.0.0.1`. Por eso el botón flotante **no usa HTTP**: envía los vídeos por
+> el **canal nativo de WebKit** (el mismo puente interno de pywebview), que va
+> directo a la app sin pasar por la red. Ni el CSP, ni CORS ni el contenido
+> mixto pueden bloquearlo.
+
+> 🔑 **Colecciones privadas**: tus listas guardadas son privadas, pero el botón
+> las lee igualmente (corre dentro de tu sesión iniciada). Para **descargar**
+> los vídeos privados, al capturar la app exporta las cookies de tu sesión a
+> `data/cookies/fb_cookies.txt` y se las pasa a `yt-dlp` (que descarga con su
+> propio cliente, no con el navegador). Si alguna vez caducan, vuelve a abrir
+> Facebook desde la app y captura de nuevo para refrescarlas.
 
 ---
 

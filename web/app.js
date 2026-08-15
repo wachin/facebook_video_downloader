@@ -126,6 +126,7 @@ const state = {
   editorDirty: false,
   fbCaptured: [],
   fbDownload: null,
+  fbDoneNotified: false,
 };
 
 let fbBookmarklet = "";
@@ -518,7 +519,10 @@ async function wipeLibrary() {
 async function renderFacebook() {
   await loadCaptured();
   await checkYtdlp();
-  if (state.fbDownload?.running) pollFbStatus();
+  // Consulta siempre el estado de descarga al entrar en la pestaña: una
+  // descarga iniciada desde Facebook (canal nativo) puede estar en curso sin
+  // que el frontend lo sepa todavía.
+  pollFbStatus();
 }
 
 async function loadCaptured() {
@@ -558,7 +562,7 @@ async function checkYtdlp() {
     const info = await api("/api/fb/ytdlp");
     hint.innerHTML = info.available
       ? (native()
-          ? "Se abre dentro de la ventana de la app."
+          ? "Se abre en una ventana nueva; Mi Recetario se queda abierto."
           : "Se abre en tu navegador (usa el bookmarklet del paso 2).")
       : "⚠ Falta <code>yt-dlp</code>: instálalo con <code>sudo apt install yt-dlp</code> para poder descargar.";
   } catch (_) { /* servidor aún arrancando */ }
@@ -568,7 +572,7 @@ async function openFacebook() {
   if (native()) {
     try {
       await window.pywebview.api.open_facebook();
-      toast("Abriendo Facebook… Inicia sesión como siempre y, en tus guardados, pulsa «📥 Enviar vídeos».");
+      toast("Abriendo Facebook en una ventana nueva. Mi Recetario se queda abierto para ver el progreso.");
     } catch (_) {
       window.open("https://www.facebook.com/saved/", "_blank");
     }
@@ -589,15 +593,15 @@ async function captureNow() {
 }
 
 function fbBookmarkletSource() {
+  // El bookmarklet solo carga el script desde el servidor local (con una
+  // etiqueta <script>, que no está sujeta a CORS ni a contenido mixto por ser
+  // 127.0.0.1). Así siempre usa la versión actual, con el botón de descargar
+  // la colección entera incluido, sin duplicar el código aquí.
   const origin = location.origin;
   return `(function(){
-    function collect(){var urls=new Set();document.querySelectorAll('video').forEach(function(v){var s=v.currentSrc||v.src;if(!s){var src=v.querySelector('source');if(src&&src.src)s=src.src;}if(s&&s.indexOf('http')===0)urls.add(s);});document.querySelectorAll('a[href*="/watch/"],a[href*="/reel/"],a[href*="/videos/"],a[href*="/photo/"]').forEach(function(a){if(a.href&&a.href.indexOf('facebook.com')>-1)urls.add(a.href);});return Array.from(urls);}
-    var urls=collect();
-    if(!urls.length){alert('No se encontraron vídeos en esta página. Desplázate y vuelve a pulsar.');return;}
-    fetch(${JSON.stringify(origin)}+'/api/fb/capture',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({urls:urls})})
-      .then(function(r){return r.json();})
-      .then(function(j){alert('✓ Enviados '+(j.added||0)+' vídeos a Mi Recetario');})
-      .catch(function(){alert('Error al enviar. ¿Está Mi Recetario abierto?');});
+    var s=document.createElement('script');
+    s.src=${JSON.stringify(origin)}+'/api/fb/script';
+    document.documentElement.appendChild(s);
   })();`;
 }
 
@@ -633,10 +637,17 @@ function pollFbStatus() {
     .then((d) => {
       state.fbDownload = d;
       renderFbStatus();
-      if (d.running) setTimeout(pollFbStatus, 1200);
-      else if (d.items.some((i) => i.status === "done")) {
+      if (d.running) {
+        state.fbDoneNotified = false;
+        setTimeout(pollFbStatus, 1200);
+        return;
+      }
+      // El trabajo terminado queda en el estado del servidor, así que el aviso
+      // «Descarga terminada» solo debe salir UNA vez (y no cada 1,5 s).
+      if (!state.fbDoneNotified && d.items.some((i) => i.status === "done")) {
+        state.fbDoneNotified = true;
         refreshAll();
-        loadCaptured();
+        loadCaptured().catch(() => {});
         toast("Descarga terminada. Los vídeos están en tu Biblioteca.");
       }
     })
@@ -646,6 +657,7 @@ function pollFbStatus() {
 function renderFbStatus() {
   const wrap = $("#fb-download-progress");
   const d = state.fbDownload;
+  renderFbMini(d);
   if (!d || !d.items.length) {
     wrap.innerHTML = "";
     return;
@@ -666,6 +678,28 @@ function renderFbStatus() {
       <div class="fb-dl-label">${label}</div>${bar}</div>`;
   }).join("");
   wrap.innerHTML = `<div class="fb-dl-box"><h4>Descargas</h4>${rows}</div>`;
+}
+
+/* Indicador global de descarga: visible desde CUALQUIER pestaña (abajo, en
+   medio). Al hacer clic, te lleva a la pestaña Facebook, donde está la lista
+   completa con el progreso de cada vídeo. */
+function renderFbMini(d) {
+  const pill = $("#fb-mini-progress");
+  if (!pill) return;
+  const active = d && d.items.find((it) => it.status === "downloading");
+  if (!(d && d.running) || !active) {
+    pill.classList.add("hidden");
+    return;
+  }
+  const pct = Math.round(active.progress || 0);
+  pill.classList.remove("hidden");
+  pill.innerHTML = `
+    <div class="fb-mini-icon">⬇️</div>
+    <div class="fb-mini-body">
+      <div class="fb-mini-label">Descargando… ${pct}%</div>
+      <div class="fb-mini-bar"><i style="width:${Math.max(3, pct)}%"></i></div>
+    </div>`;
+  pill.onclick = () => setView("facebook");
 }
 
 async function removeCaptured(id) {
@@ -886,8 +920,11 @@ async function tick() {
 
     if (state.view === "facebook") {
       loadCaptured().catch(() => {});
-      if (state.fbDownload?.running) pollFbStatus();
     }
+    // El estado de descarga se consulta SIEMPRE (no solo en la pestaña
+    // Facebook): una descarga puede iniciarse desde la ventana de Facebook y
+    // el indicador de progreso debe verse estés donde estés.
+    pollFbStatus();
   } catch (_) { /* el servidor aún arrancando */ }
 }
 

@@ -77,7 +77,10 @@ def create_app() -> Flask:
         origin = request.headers.get("Origin", "")
         if not origin:
             return True  # peticiones de la propia app o de herramientas
-        if origin.startswith("http://127.0.0.1") or origin.startswith("http://localhost"):
+        # La propia app (misma máquina): en modo ventana nativa se sirve por
+        # HTTPS local desde este arranque (https://127.0.0.1:PUERTO).
+        if origin.startswith(("http://127.0.0.1", "http://localhost",
+                              "https://127.0.0.1", "https://localhost")):
             return True
         return origin in FB_ALLOWED_ORIGINS
 
@@ -178,7 +181,32 @@ def create_app() -> Flask:
         urls = data.get("urls") or []
         if not isinstance(urls, list):
             urls = []
-        return jsonify({"ok": True, "added": db.fb_add_urls(urls)})
+        before = {r["id"] for r in db.fb_list()}
+        added = db.fb_add_urls(urls)
+        result = {"ok": True, "added": added}
+        # `download: true` lo envía el botón «Descargar toda la colección»:
+        # tras capturar los vídeos nuevos se arranca yt-dlp automáticamente con
+        # la colección entera (solo los recién añadidos, no los ya capturados).
+        if data.get("download"):
+            ids = [r["id"] for r in db.fb_list() if r["id"] not in before]
+            if ids:
+                ok, message = fb.downloader.start(ids)
+                result["download"] = {"ok": ok, "message": message}
+        return jsonify(result)
+
+    @app.get("/api/fb/script")
+    def fb_script():
+        """Sirve el script de captura con la URL del servidor incrustada.
+
+        Lo usa el bookmarklet cargándolo con una etiqueta <script>: así el
+        bookmarklet siempre usa la versión actual del script (misma fuente de
+        verdad que el botón flotante) sin duplicar código en el frontend. Las
+        etiquetas <script> no están sujetas a CORS.
+        """
+        return Response(
+            fb.build_capture_script(request.host_url.rstrip("/")),
+            mimetype="application/javascript; charset=utf-8",
+        )
 
     @app.get("/api/fb/captured")
     def fb_captured():
