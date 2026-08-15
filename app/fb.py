@@ -23,11 +23,17 @@ from . import config, database as db, scanner
 # JavaScript que recopila los vídeos visibles de la página actual de Facebook.
 # Se inyecta en la ventana de la app (botón flotante) y también se ofrece como
 # bookmarklet para usar desde el navegador normal.
+#
+# Diseño "auto-curativo": Facebook (SPA de React) elimina los nodos del DOM que
+# no conoce al re-renderizar, así que un setInterval comprueba cada 1.5 s si el
+# botón sigue en la página y, si no, lo vuelve a crear. Así el botón sobrevive
+# a la navegación interna de Facebook (login, colecciones, etc.).
 def build_capture_script(server_url: str) -> str:
     return r"""
 (function () {
-  if (window.__recetarioFB) return;
-  window.__recetarioFB = true;
+  // Id único del contenedor del botón. Se usa para saber si el botón sigue en
+  // el DOM (si no, es que React lo borró y hay que recrearlo).
+  var BTN_ID = '__recetario_fb_btn';
 
   function collect() {
     var urls = new Set();
@@ -49,7 +55,7 @@ def build_capture_script(server_url: str) -> str:
     var t = document.createElement('div');
     t.textContent = msg;
     t.style.cssText = 'position:fixed;bottom:80px;right:16px;z-index:2147483647;background:#198754;color:#fff;padding:10px 16px;border-radius:8px;font:14px sans-serif;box-shadow:0 4px 12px rgba(0,0,0,.4);';
-    document.body.appendChild(t);
+    if (document.body) document.body.appendChild(t);
     setTimeout(function () { t.remove(); }, 3500);
   }
 
@@ -73,20 +79,13 @@ def build_capture_script(server_url: str) -> str:
     }
   }
 
-  // Espera a que document.body exista antes de tocar el DOM. Aunque el botón
-  // se inyecte durante la carga (p. ej. por un bookmarklet), no falla nunca.
-  function whenReady(fn) {
-    if (document.body) { fn(); return; }
-    var tries = 0;
-    var timer = setInterval(function () {
-      tries++;
-      if (document.body) { clearInterval(timer); fn(); }
-      else if (tries > 100) { clearInterval(timer); }
-    }, 100);
-  }
-
-  whenReady(function () {
+  // Crea el botón si no está ya en la página. Idempotente: si existe, no hace
+  // nada. Se llama al inyectar y desde el vigilante interno cada 1.5 s.
+  function ensureButton() {
+    if (!document.body) return;             // la página aún carga; reintentará
+    if (document.getElementById(BTN_ID)) return;
     var d = document.createElement('div');
+    d.id = BTN_ID;
     d.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:2147483647;display:flex;flex-direction:column;gap:8px;font-family:sans-serif;';
     var b1 = document.createElement('button');
     b1.textContent = '📥 Enviar vídeos a Mi Recetario';
@@ -99,7 +98,13 @@ def build_capture_script(server_url: str) -> str:
     d.appendChild(b1);
     d.appendChild(b2);
     document.body.appendChild(d);
-  });
+  }
+
+  // Arranca una sola vez el vigilante que re-crea el botón si React lo borra.
+  if (!window.__recetarioFBInterval) {
+    window.__recetarioFBInterval = setInterval(ensureButton, 1500);
+  }
+  ensureButton();
 })();
 """ % {"url": server_url}
 

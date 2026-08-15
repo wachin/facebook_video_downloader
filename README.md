@@ -53,6 +53,11 @@ sudo apt install yt-dlp
 Si usas tu navegador normal en lugar de la ventana de la app, el paso 2 de la
 pestaña te ofrece un *bookmarklet* para arrastrar a la barra de marcadores.
 
+> 🔐 **La sesión se recuerda**: la app guarda las cookies de Facebook en
+> `data/webview/` (carpeta del proyecto), así que no tendrás que volver a
+> iniciar sesión cada vez que la abras. Inicia sesión una sola vez y la app la
+> mantiene entre ejecuciones.
+
 ---
 
 ## 2. Qué necesitas antes de empezar

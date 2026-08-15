@@ -22,11 +22,20 @@ FB_URL = "https://www.facebook.com/saved/"
 # de retorno llegue al frontend antes de empezar la navegación.
 NAV_DELAY = 1.0
 
+# Periodo del vigilante de Facebook (segundos). Facebook es una SPA: sus
+# navegaciones internas (login → guardados, cambiar de colección, etc.) no
+# disparan el evento `loaded` de pywebview, así que un hilo comprueba de vez en
+# cuando si la ventana sigue en una página de Facebook y re-inyecta el botón.
+# El script inyectado es idempotente (no duplica el botón), así que inyectar
+# repetido es inocuo.
+FB_WATCHDOG_PERIOD = 2.0
+
 
 class Api:
     def __init__(self, app_url: str = "http://127.0.0.1:8000/") -> None:
         self.app_url = app_url.rstrip("/") + "/"
         self._injector_armed = False
+        self._watchdog_started = False
 
     # ------------------------------------------------------ utilidades
 
@@ -115,14 +124,48 @@ class Api:
 
         Se escucha el evento `loaded` de pywebview, que se dispara justo cuando
         una página termina de cargar y el puente JS ya está inyectado (por eso
-        `document.body` existe y no hay errores de `null`). Cada carga completa
-        dentro de Facebook vuelve a dispararlo, así el botón se reinyecta solo
-        tras cada navegación de la SPA.
+        `document.body` existe y no hay errores de `null`). Además se arranca un
+        vigilante que re-inyecta el botón mientras la ventana esté en Facebook,
+        porque las navegaciones internas de la SPA no disparan `loaded`.
         """
         if self._injector_armed:
             return
         self._injector_armed = True
         window.events.loaded += self._on_page_loaded
+        self._start_watchdog()
+
+    def _start_watchdog(self) -> None:
+        """Hilo daemon que, mientras la ventana esté en una página de Facebook,
+        re-inyecta el script del botón cada FB_WATCHDOG_PERIOD segundos.
+
+        Cubre los casos que el evento `loaded` no ve: navegación interna de la
+        SPA de Facebook y botón borrado por React (el script además se
+        auto-repara solo con su setInterval). El script es idempotente, así que
+        re-inyectarlo no duplica nada.
+        """
+        if self._watchdog_started:
+            return
+        self._watchdog_started = True
+
+        def run() -> None:
+            while True:
+                time.sleep(FB_WATCHDOG_PERIOD)
+                try:
+                    window = webview.windows[0]
+                except Exception:
+                    continue
+                try:
+                    url = window.get_current_url() or ""
+                except Exception:
+                    continue
+                if "facebook.com" not in url:
+                    continue
+                try:
+                    window.run_js(fb.build_capture_script(self.app_url.rstrip("/")))
+                except Exception:
+                    pass
+
+        threading.Thread(target=run, daemon=True).start()
 
     def _on_page_loaded(self, window) -> None:
         """Callback del evento `loaded`: inyecta el botón si es una página de

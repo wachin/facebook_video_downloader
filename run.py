@@ -64,6 +64,7 @@ def main() -> None:
     # Ventana nativa de escritorio.
     try:
         import webview
+        from app.config import DATA_DIR
         from app.window import Api
     except ImportError:
         print("pywebview no está instalado. Abriendo en el navegador…")
@@ -80,7 +81,14 @@ def main() -> None:
         js_api=Api(app_url=url),
         background_color="#171009",
     )
-    webview.start()
+    # private_mode=False: pywebview conserva cookies y datos de sitios (la
+    # sesión de Facebook sobrevive al cerrar la app). Sin esto, el contexto de
+    # WebKit es efímero y pide credenciales en cada arranque. Los datos se
+    # guardan en data/webview/ (carpeta del proyecto).
+    webview.start(
+        private_mode=False,
+        storage_path=str(DATA_DIR / "webview"),
+    )
 
 
 if __name__ == "__main__":
