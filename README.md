@@ -304,3 +304,166 @@ run.py          Punto de entrada
 
 Todo es **local y privado**: base de datos SQLite y transcripción en tu CPU,
 sin enviar nada a internet (excepto la descarga inicial del modelo de idioma).
+
+---
+
+## 11. Tecnologías por dentro (para estudiantes de informática)
+
+Esta sección explica **qué hay detrás de cada parte** del programa. Si ya
+programas o estás estudiando, aquí tienes el mapa: qué tecnología hace cada
+cosa, por qué se eligió y dónde está en el código.
+
+> **La idea arquitectónica en una frase:** Mi Recetario es una aplicación
+> *cliente-servidor local*. Un proceso Python levanta un servidor web que solo
+> escucha en `127.0.0.1`, y la interfaz es una página web (HTML/CSS/JS) que ese
+> mismo servidor sirve. La "ventana nativa" del escritorio es, en realidad, un
+> **navegador embebido** apuntando a esa URL local. Nada de esto necesita
+> internet para funcionar.
+
+### 11.1 Backend: Python 3.10+ y Flask
+
+- **Flask** es un micro-framework HTTP de Python. Aquí define una **API REST**
+  que devuelve JSON: `GET /api/recipes`, `POST /api/recipes/<id>/transcribe`,
+  `POST /api/settings`… Cada ruta es una función Python decorada con
+  `@app.get(...)` / `@app.post(...)` (ver `app/server.py`).
+- **Werkzeug** (la base de Flask) sirve la app con `make_server(threaded=True)`:
+  un **servidor WSGI multihilo** donde cada petición HTTP se atiende en un hilo
+  propio (`run.py`).
+- El mismo servidor sirve el **frontend estático** (`web/`) y los **vídeos**
+  (`/media/video/<id>`) con soporte de **peticiones HTTP Range** (respuestas
+  `206 Partial Content`): es lo que permite hacer *seek* en el reproductor de
+  vídeo sin descargar el archivo entero.
+- El middleware `after_request` controla **CORS** solo en `/api/fb/*`,
+  aceptando únicamente orígenes de Facebook o de la propia app (ver 11.8).
+
+### 11.2 Persistencia: SQLite (sin servidor, sin ORM)
+
+- **SQLite** es una base de datos **embebida**: no hay un proceso de base de
+  datos aparte, todo vive en un archivo (`data/recipes.db`). Perfecta para una
+  app local de un solo usuario.
+- Se usa el módulo estándar `sqlite3`, con `check_same_thread=False` porque
+  varios hilos acceden a la misma conexión, y un `threading.Lock` protege cada
+  operación de escritura (`app/database.py`).
+- Las listas (`tags`, `ingredients`, `steps`) se guardan como **texto JSON**
+  y se serializan/deserializan con `json.dumps` / `json.loads`.
+- La búsqueda sin distinguir tildes se hace **normalizando el texto a Unicode
+  NFD** y eliminando los caracteres de acentuación antes de comparar.
+- Hay índices sobre `status` y `category` para que los filtros de la biblioteca
+  sean rápidos aunque haya miles de recetas.
+
+### 11.3 Transcripción local: Whisper (faster-whisper)
+
+- **Whisper** es un modelo de aprendizaje automático de OpenAI para
+  **transcribir audio a texto** (publicado en el artículo *"Robust Speech
+  Recognition via Large-Scale Weak Supervision"*). Es un **transformer
+  encoder-decoder** entrenado con cientos de miles de horas de audio con
+  subtítulos, y soporta ~99 idiomas.
+- **faster-whisper** es una reimplementación sobre **CTranslate2** (motor de
+  inferencia optimizado para CPU/GPU). Aquí se usa con `compute_type="int8"`
+  (**cuantización a enteros de 8 bits**: ~4× más rápido y con menos memoria que
+  float32, a costa de una pérdida de precisión mínima) y `cpu_threads` para
+  paralelizar dentro del equipo (`app/transcription.py`).
+- Antes de transcribir, un **VAD** (Voice Activity Detection, de Silero)
+  descarta silencios y música de fondo: en vídeos de cocina eso evita
+  alucinaciones de texto en las partes sin voz.
+- La decodificación usa **beam search**; el modelo devuelve *segmentos* con su
+  timestamp, que la app va volcando a la base de datos en tiempo real.
+- Los tamaños `tiny`/`base`/`small`/`medium` son modelos del mismo Whisper con
+  distinto número de parámetros: más grande = más preciso, pero más lento y
+  más memoria (el `small` por defecto ocupa ~460 MB y se descarga de
+  **Hugging Face** la primera vez, a `~/.cache/huggingface`).
+
+### 11.4 La ventana nativa: pywebview y WebKitGTK
+
+- **pywebview** crea ventanas de escritorio con un motor web real dentro
+  (**WebKitGTK** en Linux, WebView2/WebKit en otros sistemas). Permite
+  combinar una interfaz web con APIs de Python.
+- Su **puente nativo** (`js_api`, el canal `jsBridge`) permite que el
+  JavaScript de una página llame a métodos de Python **sin pasar por HTTP**.
+  Es la pieza clave del importador de Facebook: el CSP de Facebook bloquea el
+  `fetch` hacia `127.0.0.1`, pero no puede bloquear este canal interno
+  (`app/window.py` y el script de captura en `app/fb.py`).
+- La inyección del botón flotante usa **user scripts de WebKit**: scripts que
+  se registran para ejecutarse en `document-start` de *cada* página que carga
+  la ventana, con un guard que solo actúa en `facebook.com`.
+- Con `private_mode=False` y `storage_path` la sesión (cookies) sobrevive al
+  cierre de la app; se guarda en `data/webview/`.
+- Detalle de concurrencia curioso: WebKitGTK **solo es seguro desde el hilo
+  principal**, así que las operaciones que vienen de hilos Python se programan
+  con `GLib.idle_add` (ver `_navigate_later` en `app/window.py`).
+
+### 11.5 Descarga de vídeos: yt-dlp
+
+- **yt-dlp** (fork activo de youtube-dl) es una **CLI escrita en Python** capaz
+  de descargar vídeos de cientos de sitios, incluido Facebook.
+- La app lo lanza como **subproceso** (`subprocess.Popen`) y lee su salida en
+  vivo para mostrar el progreso: cada línea `[download] N%` se parsea con una
+  expresión regular y se guarda en la cola de descargas (`app/fb.py`).
+- Para las **colecciones privadas**, exporta las cookies de la sesión del
+  webview a un archivo en **formato Netscape** y se las pasa a `yt-dlp` con
+  `--cookies` (es el formato que esa herramienta espera).
+- La cancelación la aplica un **hilo vigilante** que llama a `proc.terminate()`
+  si el usuario pulsa Detener (necesario porque la salida de yt-dlp puede ir
+  almacenada en búfer y no llegar al bucle de lectura).
+
+### 11.6 Metadatos y miniaturas: PyAV, ffmpeg y Pillow
+
+- **PyAV** (bindings de Python para las librerías de **FFmpeg**) abre el vídeo
+  para leer su **duración** y extraer el **primer fotograma**.
+- **Pillow** redimensiona ese fotograma y lo guarda como JPEG (la miniatura de
+  la tarjeta de la receta).
+- Si PyAV no está disponible, hay *fallback* a los binarios del sistema
+  `ffprobe` y `ffmpeg` (`app/scanner.py`).
+
+### 11.7 Frontend: HTML, CSS y JavaScript (sin frameworks)
+
+- No hay React ni Vue: la interfaz es **JS vanilla** ("use strict"). El DOM se
+  construye con *template literals*, se escapan los valores con `esc()` para
+  evitar inyección de HTML, y las llamadas a la API usan **fetch** con JSON.
+- El "tiempo real" se consigue por **polling**: un `setInterval` consulta el
+  estado cada 1,5 s (`/api/transcription/jobs`, estado de descargas, …) y
+  redibuja lo que cambió. Es la solución sencilla; para este volumen de datos
+  no hace falta WebSocket ni SSE.
+- El reproductor es la etiqueta HTML `<video>` alimentada por el endpoint
+  `/media/video/<id>` con soporte Range (ver 11.1).
+
+### 11.8 Concurrencia y seguridad web, aplicadas de verdad
+
+Este proyecto es un buen caso de estudio porque junta varios conceptos que en
+clase parecen teoría:
+
+- **Contenido mixto (mixed content):** una página HTTPS no puede hacer
+  peticiones a `http://127.0.0.1`. Como Facebook es HTTPS, la app se sirve a sí
+  misma por **HTTPS local con certificado autofirmado** (generado con
+  `openssl` en `data/cert/`). Un certificado autofirmado es válido para
+  localhost, pero los navegadores lo rechazarían en cualquier otro sitio.
+- **CSP (Content-Security-Policy):** Facebook prohíbe a sus páginas hacer
+  `fetch` hacia direcciones locales. Por eso el botón flotante envía los vídeos
+  por el **canal nativo de pywebview** (jsBridge), que no es una petición HTTP
+  y no le aplica el CSP.
+- **CORS, CSRF y DNS-rebinding:** el servidor local acepta peticiones de
+  Facebook o de la propia app, y rechaza cualquier otro origen (`Origin`). Así,
+  una página web maliciosa no puede hacer que tu servidor local descargue
+  vídeos sin tu permiso.
+- **El servidor solo escucha en `127.0.0.1`**: no hay puertos abiertos a la
+  red. De tu equipo solo salen la descarga inicial del modelo (Hugging Face) y
+  las descargas de vídeos de yt-dlp.
+
+### 11.9 Para profundizar
+
+Si quieres estudiar el código, este es el orden recomendado:
+
+```
+run.py                  → cómo arranca todo (servidor, HTTPS, ventana)
+app/server.py           → la API REST y el servidor de medios
+app/database.py         → capa de persistencia (SQLite + hilos)
+app/transcription.py    → Whisper: modelo, VAD, cola y cancelación
+app/window.py           → pywebview: puente nativo y user scripts
+app/fb.py               → yt-dlp, cookies Netscape y script de captura
+web/app.js              → frontend: fetch, polling y render del DOM
+```
+
+Documentación oficial de las piezas clave: [Flask](https://flask.palletsprojects.com/),
+[SQLite](https://www.sqlite.org/docs.html), [faster-whisper](https://github.com/SYSTRAN/faster-whisper),
+[pywebview](https://pywebview.flowrl.com/), [yt-dlp](https://github.com/yt-dlp/yt-dlp),
+y el artículo de [Whisper](https://cdn.openai.com/papers/whisper.pdf).
