@@ -449,7 +449,39 @@ clase parecen teoría:
   red. De tu equipo solo salen la descarga inicial del modelo (Hugging Face) y
   las descargas de vídeos de yt-dlp.
 
-### 11.9 Para profundizar
+### 11.9 Dónde se guardan los archivos descargados (mapa de rutas)
+
+Una duda muy típica: "¿y esto dónde se ha descargado?". Aquí tienes el mapa
+completo. Distingue dos sitios: **dentro del proyecto** (carpeta `data/`, que
+se crea al primer uso) y **fuera, en tu carpeta de usuario** (cachés y vídeos).
+
+| Ruta | Qué contiene | ¿Cómo llega ahí? |
+|---|---|---|
+| `data/recipes.db` | Base de datos SQLite: recetas, transcripciones, estado | La crea y la escribe la app |
+| `data/thumbs/` | Miniaturas JPEG de cada vídeo (`thumb_<id>.jpg`) | Las genera la app con PyAV/Pillow |
+| `data/settings.json` | Ajustes: carpeta de vídeos, modelo, idioma, hilos, VAD | Los guardas tú desde **Ajustes** |
+| `data/webview/` | Perfil del navegador embebido: cookies y sesión de Facebook | Lo persiste pywebview (`private_mode=False`); si lo borras, tendrás que iniciar sesión otra vez |
+| `data/cookies/fb_cookies.txt` | Cookies de tu sesión de Facebook en formato Netscape, para `yt-dlp` | Se exportan desde el webview en cada captura (colecciones privadas) |
+| `data/cert/` | Certificado HTTPS autofirmado (`cert.pem`, `key.pem`) | Lo genera `openssl` la primera vez (`run.py`) |
+| `venv/` | Todos los paquetes de Python instalados con pip (Flask, faster-whisper, pywebview…) | Se crea con `python3 -m venv venv` y `pip install -r requirements.txt` |
+| `venv/lib/python3.*/site-packages/faster_whisper/assets/silero_vad.onnx` | Modelo **VAD de Silero** (detección de voz) | Viene **incluido en el paquete pip** de faster-whisper; no se descarga aparte |
+| `~/.cache/huggingface/hub/models--Systran--faster-whisper-small/` | Modelo de Whisper **small** (~460 MB) | Se descarga de **Hugging Face** la primera vez que transcribes. El nombre cambia con el modelo elegido (`...faster-whisper-tiny/`, `...-base/`, `...-medium/`) |
+| `~/Videos/Recetas` | **Los vídeos descargados** de Facebook con yt-dlp | Carpeta vigilada; se puede cambiar en **Ajustes**. Ahí es donde la app busca vídeos nuevos |
+
+**Qué se puede borrar sin miedo y qué no:**
+
+- `data/` es **tu información** (recetas, transcripciones, sesión de Facebook):
+  no se toca si reinstalas. Es lo único que conviene **respaldar**.
+- `venv/` se puede borrar y recrear cuando quieras (pasos 2-4 de la
+  instalación): los datos no están ahí. Lo mismo vale para `data/cert/` (se
+  regenera solo) y `data/cookies/` (se refresca en la siguiente captura).
+- `~/.cache/huggingface/` es solo caché: si la borras, el modelo de Whisper se
+  **vuelve a descargar** en la próxima transcripción (~460 MB, solo una vez).
+- Los vídeos de `~/Videos/Recetas` son **tus archivos**: borrarlos desde la app
+  (botón de eliminar) o a mano los quita del disco; la base de datos guarda la
+  referencia, por eso la app detecta si un vídeo "ya no existe".
+
+### 11.10 Para profundizar
 
 Si quieres estudiar el código, este es el orden recomendado:
 
