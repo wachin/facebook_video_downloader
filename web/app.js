@@ -398,6 +398,101 @@ function renderSettings() {
           <option value="fr" ${s.language === "fr" ? "selected" : ""}>Francés</option>
           <option value="it" ${s.language === "it" ? "selected" : ""}>Italiano</option>
           <option value="de" ${s.language === "de" ? "selected" : ""}>Alemán</option>
+          <optgroup label="Más idiomas (Whisper)">
+          <option value="af" ${s.language === "af" ? "selected" : ""}>Afrikáans</option>
+          <option value="sq" ${s.language === "sq" ? "selected" : ""}>Albanés</option>
+          <option value="am" ${s.language === "am" ? "selected" : ""}>Amárico</option>
+          <option value="ar" ${s.language === "ar" ? "selected" : ""}>Árabe</option>
+          <option value="hy" ${s.language === "hy" ? "selected" : ""}>Armenio</option>
+          <option value="as" ${s.language === "as" ? "selected" : ""}>Asamés</option>
+          <option value="az" ${s.language === "az" ? "selected" : ""}>Azerí</option>
+          <option value="ba" ${s.language === "ba" ? "selected" : ""}>Baskir</option>
+          <option value="bn" ${s.language === "bn" ? "selected" : ""}>Bengalí</option>
+          <option value="be" ${s.language === "be" ? "selected" : ""}>Bielorruso</option>
+          <option value="my" ${s.language === "my" ? "selected" : ""}>Birmano</option>
+          <option value="bs" ${s.language === "bs" ? "selected" : ""}>Bosnio</option>
+          <option value="br" ${s.language === "br" ? "selected" : ""}>Bretón</option>
+          <option value="bg" ${s.language === "bg" ? "selected" : ""}>Búlgaro</option>
+          <option value="km" ${s.language === "km" ? "selected" : ""}>Camboyano (jemer)</option>
+          <option value="kn" ${s.language === "kn" ? "selected" : ""}>Canarés</option>
+          <option value="yue" ${s.language === "yue" ? "selected" : ""}>Cantonés</option>
+          <option value="ca" ${s.language === "ca" ? "selected" : ""}>Catalán</option>
+          <option value="cs" ${s.language === "cs" ? "selected" : ""}>Checo</option>
+          <option value="zh" ${s.language === "zh" ? "selected" : ""}>Chino (mandarín)</option>
+          <option value="si" ${s.language === "si" ? "selected" : ""}>Cingalés</option>
+          <option value="ko" ${s.language === "ko" ? "selected" : ""}>Coreano</option>
+          <option value="ht" ${s.language === "ht" ? "selected" : ""}>Criollo haitiano</option>
+          <option value="hr" ${s.language === "hr" ? "selected" : ""}>Croata</option>
+          <option value="da" ${s.language === "da" ? "selected" : ""}>Danés</option>
+          <option value="sk" ${s.language === "sk" ? "selected" : ""}>Eslovaco</option>
+          <option value="sl" ${s.language === "sl" ? "selected" : ""}>Esloveno</option>
+          <option value="et" ${s.language === "et" ? "selected" : ""}>Estonio</option>
+          <option value="eu" ${s.language === "eu" ? "selected" : ""}>Euskera</option>
+          <option value="fo" ${s.language === "fo" ? "selected" : ""}>Feroés</option>
+          <option value="fi" ${s.language === "fi" ? "selected" : ""}>Finés</option>
+          <option value="gl" ${s.language === "gl" ? "selected" : ""}>Gallego</option>
+          <option value="cy" ${s.language === "cy" ? "selected" : ""}>Galés</option>
+          <option value="ka" ${s.language === "ka" ? "selected" : ""}>Georgiano</option>
+          <option value="el" ${s.language === "el" ? "selected" : ""}>Griego</option>
+          <option value="gu" ${s.language === "gu" ? "selected" : ""}>Guyaratí</option>
+          <option value="ha" ${s.language === "ha" ? "selected" : ""}>Hausa</option>
+          <option value="haw" ${s.language === "haw" ? "selected" : ""}>Hawaiano</option>
+          <option value="he" ${s.language === "he" ? "selected" : ""}>Hebreo</option>
+          <option value="hi" ${s.language === "hi" ? "selected" : ""}>Hindi</option>
+          <option value="hu" ${s.language === "hu" ? "selected" : ""}>Húngaro</option>
+          <option value="id" ${s.language === "id" ? "selected" : ""}>Indonesio</option>
+          <option value="is" ${s.language === "is" ? "selected" : ""}>Islandés</option>
+          <option value="ja" ${s.language === "ja" ? "selected" : ""}>Japonés</option>
+          <option value="jw" ${s.language === "jw" ? "selected" : ""}>Javanés</option>
+          <option value="kk" ${s.language === "kk" ? "selected" : ""}>Kazajo</option>
+          <option value="lo" ${s.language === "lo" ? "selected" : ""}>Laosiano</option>
+          <option value="la" ${s.language === "la" ? "selected" : ""}>Latín</option>
+          <option value="lv" ${s.language === "lv" ? "selected" : ""}>Letón</option>
+          <option value="ln" ${s.language === "ln" ? "selected" : ""}>Lingala</option>
+          <option value="lt" ${s.language === "lt" ? "selected" : ""}>Lituano</option>
+          <option value="lb" ${s.language === "lb" ? "selected" : ""}>Luxemburgués</option>
+          <option value="mk" ${s.language === "mk" ? "selected" : ""}>Macedonio</option>
+          <option value="mg" ${s.language === "mg" ? "selected" : ""}>Malgache</option>
+          <option value="ms" ${s.language === "ms" ? "selected" : ""}>Malayo</option>
+          <option value="ml" ${s.language === "ml" ? "selected" : ""}>Malayalam</option>
+          <option value="mt" ${s.language === "mt" ? "selected" : ""}>Maltés</option>
+          <option value="mr" ${s.language === "mr" ? "selected" : ""}>Maratí</option>
+          <option value="mi" ${s.language === "mi" ? "selected" : ""}>Maorí</option>
+          <option value="mn" ${s.language === "mn" ? "selected" : ""}>Mongol</option>
+          <option value="ne" ${s.language === "ne" ? "selected" : ""}>Nepalí</option>
+          <option value="nl" ${s.language === "nl" ? "selected" : ""}>Neerlandés</option>
+          <option value="no" ${s.language === "no" ? "selected" : ""}>Noruego</option>
+          <option value="nn" ${s.language === "nn" ? "selected" : ""}>Noruego (nynorsk)</option>
+          <option value="oc" ${s.language === "oc" ? "selected" : ""}>Occitano</option>
+          <option value="pa" ${s.language === "pa" ? "selected" : ""}>Panyabí</option>
+          <option value="ps" ${s.language === "ps" ? "selected" : ""}>Pastún</option>
+          <option value="fa" ${s.language === "fa" ? "selected" : ""}>Persa</option>
+          <option value="pl" ${s.language === "pl" ? "selected" : ""}>Polaco</option>
+          <option value="ro" ${s.language === "ro" ? "selected" : ""}>Rumano</option>
+          <option value="ru" ${s.language === "ru" ? "selected" : ""}>Ruso</option>
+          <option value="sa" ${s.language === "sa" ? "selected" : ""}>Sánscrito</option>
+          <option value="sd" ${s.language === "sd" ? "selected" : ""}>Sindhi</option>
+          <option value="sr" ${s.language === "sr" ? "selected" : ""}>Serbio</option>
+          <option value="sn" ${s.language === "sn" ? "selected" : ""}>Shona</option>
+          <option value="so" ${s.language === "so" ? "selected" : ""}>Somalí</option>
+          <option value="sw" ${s.language === "sw" ? "selected" : ""}>Suajili</option>
+          <option value="su" ${s.language === "su" ? "selected" : ""}>Sundanés</option>
+          <option value="sv" ${s.language === "sv" ? "selected" : ""}>Sueco</option>
+          <option value="tl" ${s.language === "tl" ? "selected" : ""}>Tagalo</option>
+          <option value="ta" ${s.language === "ta" ? "selected" : ""}>Tamil</option>
+          <option value="tt" ${s.language === "tt" ? "selected" : ""}>Tártaro</option>
+          <option value="tg" ${s.language === "tg" ? "selected" : ""}>Tayiko</option>
+          <option value="te" ${s.language === "te" ? "selected" : ""}>Telugu</option>
+          <option value="bo" ${s.language === "bo" ? "selected" : ""}>Tibetano</option>
+          <option value="tk" ${s.language === "tk" ? "selected" : ""}>Turcomano</option>
+          <option value="tr" ${s.language === "tr" ? "selected" : ""}>Turco</option>
+          <option value="uk" ${s.language === "uk" ? "selected" : ""}>Ucraniano</option>
+          <option value="ur" ${s.language === "ur" ? "selected" : ""}>Urdu</option>
+          <option value="uz" ${s.language === "uz" ? "selected" : ""}>Uzbeko</option>
+          <option value="vi" ${s.language === "vi" ? "selected" : ""}>Vietnamita</option>
+          <option value="yi" ${s.language === "yi" ? "selected" : ""}>Yidis</option>
+          <option value="yo" ${s.language === "yo" ? "selected" : ""}>Yoruba</option>
+          </optgroup>
         </select>
       </div>
       <div class="field">

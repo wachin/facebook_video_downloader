@@ -83,9 +83,15 @@ class TranscriptionManager:
                 if job and job["cancelled"]:
                     self._abort(recipe_id)
                     return
+                # "auto" → None: en faster-whisper la detección automática
+                # solo se activa pasando language=None ("auto" no es un código
+                # válido y lanzaría un error).
+                language = settings.get("language") or None
+                if language == "auto":
+                    language = None
                 segments, info = model.transcribe(
                     video_path,
-                    language=settings.get("language") or None,
+                    language=language,
                     vad_filter=bool(settings.get("vad", True)),
                     beam_size=5,
                 )

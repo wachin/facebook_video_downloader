@@ -15,7 +15,8 @@ DEFAULTS = {
     # Modelo de Whisper: tiny | base | small | medium  (a mayor tamaño, más
     # preciso pero más lento. "small" es un buen equilibrio en CPU).
     "whisper_model": "small",
-    # Idioma de la transcripción: es | en | auto | pt | fr | it | de ...
+    # Idioma de la transcripción: "auto" (detectar) o cualquier código ISO de
+    # Whisper (es, en, pt, fr, it, de, ca, ru, ja... 99 idiomas en total).
     "language": "es",
     # Hilos de CPU para la transcripción.
     "cpu_threads": 4,
