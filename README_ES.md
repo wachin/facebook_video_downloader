@@ -501,3 +501,91 @@ Documentación oficial de las piezas clave: [Flask](https://flask.palletsproject
 [SQLite](https://www.sqlite.org/docs.html), [faster-whisper](https://github.com/SYSTRAN/faster-whisper),
 [pywebview](https://pywebview.flowrl.com/), [yt-dlp](https://github.com/yt-dlp/yt-dlp),
 y el artículo de [Whisper](https://cdn.openai.com/papers/whisper.pdf).
+
+---
+
+## 12. Internacionalización (i18n)
+
+Facebook Collections Downloader soporta múltiples idiomas usando
+**archivos `.ts` de Qt Linguist** (formato de traducción basado en XML). El
+idioma base es inglés; las traducciones se cargan en tiempo de ejecución.
+
+### Cómo funciona
+
+| Capa | Mecanismo |
+|---|---|
+| Backend (Python) | `app/i18n.py` parsea archivos `.ts` XML y proporciona `tr(contexto, fuente)` |
+| Frontend (JS) | `web/i18n.js` carga traducciones vía `GET /api/translations/<idioma>` y las aplica a elementos HTML con atributos `data-i18n` |
+| Archivos de traducción | `locale/en.ts` (fuente en inglés, 141 strings), `locale/es.ts` (español) |
+| Archivos compilados | `locale/*.qm` generados por `lrelease` (opcionales, para herramientas Qt) |
+
+### Añadir un nuevo idioma
+
+1. Copiar `locale/en.ts` a `locale/xx.ts` (donde `xx` es el código ISO 639-1).
+2. Traducir cada elemento `<translation>` del nuevo archivo.
+3. Compilar: `lrelease locale/xx.ts -qm locale/xx.qm`
+4. La app detecta el nuevo archivo `.ts` automáticamente y lo ofrece en Ajustes.
+
+### Editar traducciones con Qt Creator / Qt Linguist
+
+Para editar archivos `.ts` visualmente con la GUI de **Qt Linguist** (incluida
+en Qt Creator):
+
+```bash
+# Debian/Ubuntu — instalar las herramientas (una sola vez)
+sudo apt install qt6-l10n-tools linguist-qt6 qtcreator
+
+# Abrir un archivo .ts en Linguist
+linguist locale/es.ts
+
+# O abrir el proyecto completo en Qt Creator (Archivo → Abrir archivo → locale/es.ts)
+```
+
+**Qt Creator** tiene un editor de traducciones integrado: al abrir un archivo
+`.ts` muestra una tabla con los strings fuente a la izquierda y los campos de
+traducción a la derecha. Puedes marcar traducciones como *terminadas*,
+*sin terminar* o *obsoletas*.
+
+**Paquetes necesarios para desarrolladores en Linux:**
+
+| Paquete | Qué proporciona | Comando de instalación |
+|---|---|---|
+| `qt6-l10n-tools` | `lupdate` (extraer strings) + `lrelease` (compilar .qm) | `sudo apt install qt6-l10n-tools` |
+| `linguist-qt6` | Editor GUI Qt Linguist | `sudo apt install linguist-qt6` |
+| `qtcreator` | IDE Qt Creator con Linguist integrado | `sudo apt install qtcreator` |
+
+Para Qt 5 en lugar de Qt 6: reemplazar `qt6-l10n-tools` por `qttools5-dev-tools`
+`linguist-qt6` por `qttools5-dev`.
+
+### Extraer strings del código fuente
+
+```bash
+# Extraer strings Python a un archivo .ts
+pylupdate6 app/*.py -ts locale/template.ts
+
+# Actualizar un archivo .ts existente con strings nuevos/cambiados
+lupdate web/app.js web/index.html -ts locale/en.ts
+```
+
+### Estructura de archivos
+
+```
+locale/
+  en.ts       ← strings fuente en inglés (141 strings, 7 contextos)
+  es.ts       ← traducciones al español
+  en.qm       ← compilado (generado por lrelease, ignorado por git)
+  es.qm       ← compilado (generado por lrelease, ignorado por git)
+```
+
+### Contextos en los archivos .ts
+
+| Contexto | Contiene |
+|---|---|
+| `MainWindow` | Marca, navegación, pie de página |
+| `Library` | Vista de biblioteca (búsqueda, filtros, tarjetas) |
+| `Queue` | Cola de transcripción |
+| `Facebook` | Pestaña de importación de Facebook |
+| `Settings` | Panel de ajustes |
+| `Editor` | Editor de recetas |
+| `Toasts` | Mensajes de notificación toast |
+| `Backend` | Mensajes de error/información de Python |
