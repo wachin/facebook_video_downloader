@@ -1,224 +1,227 @@
-# 🍲 Mi Recetario — recetas de cocina en vídeo
+# 🍲 Facebook Collections Downloader — cooking recipe videos
 
-Un programa de escritorio para tu colección de **vídeos de recetas de Facebook**:
+A desktop program for your collection of **cooking recipe videos from Facebook**:
 
-1. **Organiza** los vídeos que has guardado en una carpeta de tu equipo.
-2. **Transcríbelos a texto** de forma local con Whisper (español incluido) —
-   tus vídeos **nunca salen de tu ordenador**.
-3. **Edítalos como recetas**: ingredientes, pasos, categorías, etiquetas,
-   búsqueda y exportación a Markdown.
+1. **Organize** the videos you've saved to a folder on your computer.
+2. **Transcribe them to text** locally with Whisper (99 languages supported) —
+   your videos **never leave your computer**.
+3. **Edit them as recipes**: ingredients, steps, categories, tags,
+   search and export to Markdown.
 
-> 🐣 **Este README está escrito para principiantes totales.** Si nunca has
-> usado la terminal, `pip` o `venv`, no pasa nada: sigue los pasos en orden
-> y todo funcionará. Las palabras raras están explicadas.
+> 🐣 **This README is written for complete beginners.** If you've never used
+> a terminal, `pip`, or `venv`, that's okay: follow the steps in order and
+> everything will work. Unfamiliar terms are explained.
+
+> 📖 **[README en Español (Versión en español)](README_ES.md)**
 
 ---
 
-## 1. Cómo conseguir los vídeos de Facebook
+## 1. How to get videos from Facebook
 
-Mi Recetario incluye un **importador de Facebook** integrado: captura los
-vídeos de tus *colecciones guardadas* y los descarga con un clic, sin
-necesidad de herramientas externas.
+Facebook Collections Downloader includes a built-in **Facebook importer**: it captures the
+videos from your *saved collections* and downloads them with one click, with
+no need for external tools.
 
-### 📥 El flujo recomendado: la pestaña «Facebook»
+### 📥 Recommended workflow: the "Facebook" tab
 
-1. Abre Mi Recetario y pulsa **Facebook → Abrir Facebook**. Se abre una
-   **ventana nueva** con Facebook y Mi Recetario se queda abierto en la suya.
-2. Inicia sesión en Facebook como siempre, con tu verificación en dos pasos si
-   la tienes. **Solo la primera vez**: la sesión se recuerda entre ejecuciones
-   (la app guarda las cookies en `data/webview/`).
-3. Entra a una colección de tus guardados. Abajo a la derecha verás un panel
-   con tres botones:
-   - **«⬇️ Descargar toda la colección»** — recorre toda la colección
-     automáticamente (Facebook va cargando más vídeos al llegar abajo),
-     recopila todos los vídeos y arranca la descarga con `yt-dlp`.
-   - **«📥 Enviar vídeos visibles»** — envía solo los vídeos que se ven en
-     pantalla.
-   - **«↩ Cerrar Facebook»** — cierra la ventana de Facebook; Mi Recetario
-     sigue abierto.
-4. Verás un aviso verde al empezar la descarga. Su **progreso se ve en vivo**
-   en la ventana de Mi Recetario: la pestaña **Facebook** muestra la lista por
-   vídeo con su barra de porcentaje, y mientras se descarga aparece también un
-   **indicador inferior** visible desde cualquier pestaña (pulsarlo te lleva a
-   la lista). Al terminar, los vídeos quedan en tu carpeta y aparecen en la
-   **Biblioteca**.
+1. Open Facebook Collections Downloader and click **Facebook → Open Facebook**. A **new
+   window** opens with Facebook, while Facebook Collections Downloader stays open in its own
+   window.
+2. Log in to Facebook as usual, with your two-factor verification if you have
+   it. **Only the first time**: the session is remembered between launches
+   (the app stores cookies in `data/webview/`).
+3. Go to one of your saved collections. At the bottom-right you'll see a
+   panel with three buttons:
+   - **"⬇️ Download entire collection"** — automatically scrolls through the
+     collection (Facebook loads more videos as you reach the bottom),
+     collects all videos and starts the download with `yt-dlp`.
+   - **"📥 Send visible videos"** — sends only the videos currently on screen.
+   - **"↩ Close Facebook"** — closes the Facebook window; Facebook Collections Downloader
+     stays open.
+4. You'll see a green notice when the download starts. Its **progress is
+   visible live** in the Facebook Collections Downloader window: the **Facebook** tab shows
+   the per-video list with percentage bars, and while downloading a
+   **bottom indicator** is also visible from any tab (clicking it takes you
+   to the list). When finished, the videos are in your folder and appear in
+   the **Library**.
 
-Para que la descarga funcione, instala `yt-dlp` (solo hace falta una vez):
+For downloads to work, install `yt-dlp` (only needed once):
 
 ```bash
 sudo apt install yt-dlp
 ```
 
-> 🔑 **Colecciones privadas**: tus listas guardadas son privadas, pero el botón
-> las lee igualmente porque corre dentro de tu sesión iniciada. Para
-> **descargar** esos vídeos, al capturar la app exporta las cookies de tu
-> sesión a `data/cookies/fb_cookies.txt` y se las pasa a `yt-dlp`, que así
-> descarga con tu sesión (no con el navegador). Si caducan, vuelve a abrir
-> Facebook desde la app y captura de nuevo: se refrescan solas.
+> 🔑 **Private collections**: your saved lists are private, but the button
+> reads them anyway because it runs inside your logged-in session. To
+> **download** those videos, on capture the app exports your session cookies
+> to `data/cookies/fb_cookies.txt` and passes them to `yt-dlp`, which
+> downloads using your session (not the browser). If the cookies expire, just
+> open Facebook from the app and capture again: they refresh automatically.
 
-> 🔒 **HTTPS local**: la app se sirve por HTTPS con un certificado autofirmado
-> (se genera solo con `openssl` en `data/cert/`). Es necesario porque Facebook
-> es HTTPS y WebKitGTK bloquea los envíos desde una página segura hacia
-> `http://127.0.0.1` (contenido mixto). Todo sigue siendo local: el servidor
-> solo escucha en 127.0.0.1.
+> 🔒 **Local HTTPS**: the app is served over HTTPS with a self-signed
+> certificate (generated automatically with `openssl` in `data/cert/`). This
+> is necessary because Facebook is HTTPS and WebKitGTK blocks requests from a
+> secure page to `http://127.0.0.1` (mixed content). Everything stays local:
+> the server only listens on 127.0.0.1.
 
-> 📡 **Cómo se envían los vídeos a la app**: Facebook impone una política de
-> seguridad (CSP) que prohíbe a cualquier página suya hacer *fetch* hacia
-> `127.0.0.1`. Por eso el botón flotante **no usa HTTP**: envía los vídeos por
-> el **canal nativo de WebKit** (el puente interno de pywebview), que llega
-> directo a la app sin pasar por la red. Ni el CSP, ni CORS ni el contenido
-> mixto pueden bloquearlo.
+> 📡 **How videos are sent to the app**: Facebook enforces a security policy
+> (CSP) that forbids any of its pages from making *fetch* requests to
+> `127.0.0.1`. That's why the floating button **doesn't use HTTP**: it sends
+> videos through the **native WebKit channel** (the internal bridge of
+> pywebview), which reaches the app directly without going through the
+> network. Neither CSP, CORS, nor mixed content can block it.
 
-### 🖱️ Alternativa manual (sin usar la pestaña Facebook)
+### 🖱️ Manual alternative (without the Facebook tab)
 
-Si prefieres el método 100 % manual, también puedes:
+If you prefer the 100% manual method, you can also:
 
-1. En Facebook, abre el vídeo y pulsa **clic derecho → «Guardar vídeo como…»**
-   (o usa un descargador individual como `yt-dlp` pegando la URL).
-2. Deja los archivos en la carpeta de vídeos de la app (por defecto
+1. On Facebook, open the video and click **right-click → "Save video as…"**
+   (or use a standalone downloader like `yt-dlp` by pasting the URL).
+2. Place the files in the app's video folder (default:
    `~/Videos/Recetas`).
-3. Abre Mi Recetario, pulsa **Escanear** y el vídeo aparece en la Biblioteca.
+3. Open Facebook Collections Downloader, click **Scan** and the video appears in the Library.
 
-En ese caso, la pestaña Facebook te ofrece también un *bookmarklet* para
-arrastrar a la barra de marcadores de tu navegador y capturar desde allí.
+In that case, the Facebook tab also offers a *bookmarklet* you can drag to
+your browser's bookmarks bar to capture from there.
 
-> ⚠️ El importador navega Facebook con tu cuenta (igual que harías tú a mano)
-> y solo recoge los vídeos que **tú** ves en pantalla; no rastrea tu perfil ni
-> el de nadie. Como con cualquier automatización, conviene usarlo con
-> moderación para no llamar la atención sobre tu cuenta.
+> ⚠️ The importer navigates Facebook with your account (just as you would
+> manually) and only collects the videos **you** see on screen; it doesn't
+> crawl your profile or anyone else's. As with any automation, use it in
+> moderation to avoid drawing attention to your account.
 
 ---
 
-## 2. Qué necesitas antes de empezar
+## 2. What you need before starting
 
-- **Python 3.10 o superior** (casi cualquier Linux moderno lo trae).
-- Una **terminal** (la ventanita donde se escriben comandos).
-- **Conexión a internet** la primera vez (para descargar el motor de
-  transcripción y el modelo de idioma).
+- **Python 3.10 or later** (most modern Linux distributions include it).
+- A **terminal** (the small window where you type commands).
+- **Internet connection** the first time (to download the transcription
+  engine and the language model).
 
-Para comprobar si tienes Python, abre una terminal y escribe:
+To check if you have Python, open a terminal and type:
 
 ```bash
 python3 --version
 ```
 
-Si ves algo como `Python 3.11.x` o superior, estás listo. Si te da error o te
-dice que falta `venv`, mira la sección [9. Solución de problemas](#9-solución-de-problemas).
+If you see something like `Python 3.11.x` or later, you're good to go. If
+you get an error or it says `venv` is missing, see section
+[9. Troubleshooting](#9-troubleshooting).
 
 ---
 
-## 3. ¿Qué es eso de `venv` y `pip`? (explicado sin tecnicismos)
+## 3. What are `venv` and `pip`? (explained without jargon)
 
-Piensa en un programa de Python como una receta de cocina: necesita varios
-"ingredientes" (paquetes) para funcionar: Flask, Pillow, el motor de
-transcripción, etc.
+Think of a Python program like a recipe: it needs several "ingredients"
+(packages) to work: Flask, Pillow, the transcription engine, etc.
 
-- **`pip`** es la herramienta que descarga e instala esos ingredientes.
-- **`venv`** (entorno virtual) es una **caja aislada** dentro de tu proyecto
-  donde se guardan esos ingredientes, sin tocar el resto del sistema.
+- **`pip`** is the tool that downloads and installs those ingredients.
+- **`venv`** (virtual environment) is an **isolated box** inside your project
+  where those ingredients are stored, without touching the rest of the system.
 
-¿Por qué hace falta esta caja? Porque casi todos los ingredientes de Mi
-Recetario existen como paquetes de tu distribución de Linux... **excepto uno**:
-el motor de transcripción (`faster-whisper`). Ese solo se consigue con `pip`,
-y lo correcto es instalarlo dentro de su caja (`venv`), no en el sistema.
-Así no rompes nada, y si algo falla, borras la caja y la creas de nuevo.
+Why is this box needed? Because almost all of Facebook Collections Downloader's ingredients are
+available as Linux distribution packages... **except one**: the transcription
+engine (`faster-whisper`). That one can only be installed with `pip`, and the
+right way is to install it inside its box (`venv`), not system-wide. That way
+nothing breaks, and if something goes wrong you just delete the box and
+recreate it.
 
-> La carpeta del entorno virtual se llama `venv/` y vive dentro de la carpeta
-> del proyecto. Se puede borrar y recrear cuando quieras: los datos de tus
-> recetas están en otra carpeta (`data/`) y no se pierden.
+> The virtual environment folder is called `venv/` and lives inside the
+> project folder. It can be deleted and recreated anytime: your recipe data
+> is in a different folder (`data/`) and is not lost.
 
 ---
 
-## 4. Instalación paso a paso
+## 4. Installation step by step
 
-Abre una terminal y copia los comandos **uno a uno**, pulsando Enter después
-de cada uno.
+Open a terminal and run the commands **one at a time**, pressing Enter after
+each one.
 
-**Paso 1 — Ve a la carpeta del proyecto.** (Cambia la ruta por la tuya si
-instalaste el proyecto en otro sitio.)
+**Step 1 — Go to the project folder.** (Change the path to yours if you
+installed the project elsewhere.)
 
 ```bash
 cd ~/Dev3/recipe_book_downloader
 ```
 
-**Paso 2 — Crea el entorno virtual (la "caja").** Esto solo se hace **una
-vez**, en la primera instalación.
+**Step 2 — Create the virtual environment (the "box").** This is done **only
+once**, on the first installation.
 
 ```bash
 python3 -m venv venv
 ```
 
-No verás ningún mensaje si todo ha ido bien. Eso es normal.
+If everything went well, you won't see any message. That's normal.
 
-**Paso 3 — Activa el entorno virtual.** Fíjate en el `(venv)` que aparece
-al principio de la línea: es la señal de que estás dentro de la caja.
+**Step 3 — Activate the virtual environment.** Notice the `(venv)` at the
+beginning of the line: that's the signal you're inside the box.
 
 ```bash
 source venv/bin/activate
 ```
 
-**Paso 4 — Instala los ingredientes.** Esto descarga e instala todo lo que
-el programa necesita (puede tardar unos minutos la primera vez).
+**Step 4 — Install the ingredients.** This downloads and installs everything
+the program needs (it may take a few minutes the first time).
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**Paso 5 — Arranca el programa.**
+**Step 5 — Launch the program.**
 
 ```bash
 python run.py
 ```
 
-Se abrirá la ventana de **Mi Recetario**. 🎉
+The **Facebook Collections Downloader** window will open. 🎉
 
 ---
 
-## 5. Activar y desactivar el entorno virtual
+## 5. Activating and deactivating the virtual environment
 
-El entorno virtual se **activa** cuando quieres usar `pip` o `python` dentro
-de él, y se **desactiva** cuando terminas.
+The virtual environment is **activated** when you want to use `pip` or
+`python` inside it, and **deactivated** when you're done.
 
-### 🔓 Activar
+### 🔓 Activate
 
 ```bash
 source venv/bin/activate
 ```
 
-Verás `(venv)` al principio de la línea del terminal:
+You'll see `(venv)` at the beginning of the terminal line:
 
 ```
-(venv) usuario@equipo:~/Dev3/recipe_book_downloader$
+(venv) user@machine:~/Dev3/recipe_book_downloader$
 ```
 
-Mientras esté ese `(venv)`, los comandos `python` y `pip` usan el entorno
-del proyecto. Cuando lo cierres (cerrando la ventana), se desactiva solo.
+As long as `(venv)` is there, `python` and `pip` commands use the project
+environment. When you close the window, it deactivates automatically.
 
-### 🔒 Desactivar
+### 🔒 Deactivate
 
 ```bash
 deactivate
 ```
 
-El `(venv)` desaparece de la línea y vuelves al sistema normal. (Si no lo
-has activado antes, no hay nada que desactivar.)
+The `(venv)` disappears from the line and you're back to the normal system.
+(If you haven't activated it before, there's nothing to deactivate.)
 
-### 🤓 Truco: no hace falta activar para usar la app
+### 🤓 Tip: you don't need to activate to use the app
 
-Para **lanzar el programa** no necesitas activar nada. Este comando funciona
-siempre, estés donde estés (dentro de la carpeta del proyecto):
+To **launch the program** you don't need to activate anything. This command
+always works, wherever you are (as long as you're in the project folder):
 
 ```bash
 venv/bin/python run.py
 ```
 
-Es la misma app, sin pasos extra. Mucha gente lo usa directamente.
+It's the same app, no extra steps. Many people use it this way directly.
 
 ---
 
-## 6. Cómo usar el programa
+## 6. How to use the program
 
-### Opción A — ventana nativa de escritorio (recomendada)
+### Option A — native desktop window (recommended)
 
 ```bash
 venv/bin/python run.py
@@ -226,44 +229,44 @@ venv/bin/python run.py
 
 ![](images/01-recipe_book_downloader.png)
 
-### Opción B — en el navegador
+### Option B — in the browser
 
 ```bash
 venv/bin/python run.py --web
 ```
 
-### Opción C — solo el servidor interno (para pruebas / API)
+### Option C — server only (for testing / API)
 
 ```bash
 venv/bin/python run.py --serve --port 8765
 ```
 
-**Sobre la primera transcripción:** la primera vez que pulses *Transcribir*,
-el programa descarga el modelo de idioma (unos 460 MB el modelo *small* por
-defecto, que se guarda en `~/.cache/huggingface`). Solo ocurre una vez.
-Si tu ordenador es modesto, puedes elegir el modelo *tiny* o *base* en
-**Ajustes** para que sea más rápido (a cambio de algo de precisión).
+**About the first transcription:** the first time you click *Transcribe*,
+the program downloads the language model (~460 MB for the default *small*
+model, saved to `~/.cache/huggingface`). It only happens once. If your
+computer is modest, you can choose the *tiny* or *base* model in
+**Settings** to make it faster (at the cost of some accuracy).
 
 ---
 
-## 7. Funciones
+## 7. Features
 
-- **Biblioteca**: tarjetas con miniatura, búsqueda por título/texto y
-  filtros por categoría y estado.
-- **Editor de receta**: reproductor de vídeo, transcripción editable en vivo,
-  listas de ingredientes y pasos, etiquetas, notas y exportación `.md`.
-- **Cola de transcripción**: progreso en tiempo real, cancelación y reintento.
-- **Ajustes**: carpeta de vídeos, modelo de Whisper, idioma, hilos de CPU y VAD.
-- **Importar**: arrastra vídeos a la ventana para copiarlos a tu carpeta.
-- **Facebook**: se abre en una **ventana propia** (Mi Recetario sigue abierto),
-  captura tus vídeos guardados con tu propia sesión y los descarga con
-  `yt-dlp` a tu carpeta, con el **progreso en vivo** desde cualquier pestaña.
+- **Library**: cards with thumbnails, search by title/text and filters by
+  category and status.
+- **Recipe editor**: video player, live-editable transcription, ingredient
+  and step lists, tags, notes and `.md` export.
+- **Transcription queue**: real-time progress, cancellation and retry.
+- **Settings**: video folder, Whisper model, language, CPU threads and VAD.
+- **Import**: drag videos onto the window to copy them to your folder.
+- **Facebook**: opens in its **own window** (Facebook Collections Downloader stays open),
+  captures your saved videos with your own session and downloads them with
+  `yt-dlp` to your folder, with **live progress** from any tab.
 
 ---
 
-## 8. Cómo actualizar el programa
+## 8. How to update the program
 
-Cuando haya una versión nueva:
+When there's a new version:
 
 ```bash
 cd ~/Dev3/recipe_book_downloader
@@ -272,230 +275,235 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-(El `git pull` descarga el código nuevo y el `pip install` actualiza los
-ingredientes si hace falta.)
+(`git pull` downloads the new code and `pip install` updates the ingredients
+if needed.)
 
 ---
 
-## 9. Solución de problemas
+## 9. Troubleshooting
 
-|  Problema | Solución |
-|--- |---|
-| `python3: command not found`  | Instala Python: `sudo apt install python3` |
-| `ensurepip is not available` o falta `venv` | Instala el módulo: `sudo apt install python3-venv` y repite el Paso 2 |
-| `error: externally-managed-environment` | Es normal en Debian/MX: significa que pip no debe tocar el sistema. **Activa el venv** (Paso 3) y repite el Paso 4 |
-| El venv está "roto" o algo raro ocurre | Bórralo y créalo de nuevo: `rm -rf venv` y repite los pasos 2 a 4. Tus recetas no se pierden (están en `data/`) |
-| La transcripción tarda mucho | Elige un modelo más pequeño en **Ajustes** (tiny o base) |
-| La descarga del modelo falla a mitad | Vuelve a intentarlo: reanuda donde se quedó. Si falla siempre, revisa tu conexión o proxy |
-| Los vídeos privados de Facebook no se descargan (error de autenticación) | Las cookies caducaron. Abre Facebook desde la app y captura de nuevo: la app las refresca automáticamente |
-| No veo el progreso de la descarga | Mientras se descarga, hay un indicador inferior en cualquier pestaña; la lista completa por vídeo está en la pestaña Facebook |
+| Problem | Solution |
+|---|---|
+| `python3: command not found` | Install Python: `sudo apt install python3` |
+| `ensurepip is not available` or `venv` is missing | Install the module: `sudo apt install python3-venv` and repeat Step 2 |
+| `error: externally-managed-environment` | This is normal on Debian/MX: it means pip shouldn't touch the system. **Activate the venv** (Step 3) and repeat Step 4 |
+| The venv is "broken" or something weird happens | Delete it and recreate: `rm -rf venv` and repeat steps 2–4. Your recipes are not lost (they're in `data/`) |
+| Transcription takes too long | Choose a smaller model in **Settings** (tiny or base) |
+| Model download fails halfway | Try again: it resumes where it left off. If it always fails, check your connection or proxy |
+| Private Facebook videos won't download (authentication error) | The cookies expired. Open Facebook from the app and capture again: the app refreshes them automatically |
+| I don't see download progress | While downloading, there's a bottom indicator on any tab; the full per-video list is in the Facebook tab |
 
 ---
 
-## 10. Estructura del proyecto
+## 10. Project structure
 
 ```
-app/            Backend (Flask, SQLite, Whisper, escáner de vídeos)
-web/            Interfaz (HTML/CSS/JS, sin frameworks externos)
-data/           Base de datos, miniaturas y ajustes (se crea al primer uso)
-venv/           Entorno virtual (NO se toca a mano; se crea con el Paso 2)
-run.py          Punto de entrada
+app/            Backend (Flask, SQLite, Whisper, video scanner)
+web/            Interface (HTML/CSS/JS, no external frameworks)
+data/           Database, thumbnails and settings (created on first use)
+venv/           Virtual environment (DO NOT touch manually; created in Step 2)
+run.py          Entry point
 ```
 
-Todo es **local y privado**: base de datos SQLite y transcripción en tu CPU,
-sin enviar nada a internet (excepto la descarga inicial del modelo de idioma).
+Everything is **local and private**: SQLite database and transcription on
+your CPU, with nothing sent to the internet (except the initial language
+model download).
 
 ---
 
-## 11. Tecnologías por dentro (para estudiantes de informática)
+## 11. Technologies under the hood (for CS students)
 
-Esta sección explica **qué hay detrás de cada parte** del programa. Si ya
-programas o estás estudiando, aquí tienes el mapa: qué tecnología hace cada
-cosa, por qué se eligió y dónde está en el código.
+This section explains **what powers each part** of the program. If you already
+code or are studying computer science, here's the map: what technology does
+what, why it was chosen, and where it lives in the code.
 
-> **La idea arquitectónica en una frase:** Mi Recetario es una aplicación
-> *cliente-servidor local*. Un proceso Python levanta un servidor web que solo
-> escucha en `127.0.0.1`, y la interfaz es una página web (HTML/CSS/JS) que ese
-> mismo servidor sirve. La "ventana nativa" del escritorio es, en realidad, un
-> **navegador embebido** apuntando a esa URL local. Nada de esto necesita
-> internet para funcionar.
+> **The architectural idea in one sentence:** Facebook Collections Downloader is a *local
+> client-server application*. A Python process launches a web server that
+> only listens on `127.0.0.1`, and the interface is a web page (HTML/CSS/JS)
+> served by that same server. The "native window" on the desktop is, in
+> reality, an **embedded browser** pointing to that local URL. None of this
+> needs the internet to work.
 
-### 11.1 Backend: Python 3.10+ y Flask
+### 11.1 Backend: Python 3.10+ and Flask
 
-- **Flask** es un micro-framework HTTP de Python. Aquí define una **API REST**
-  que devuelve JSON: `GET /api/recipes`, `POST /api/recipes/<id>/transcribe`,
-  `POST /api/settings`… Cada ruta es una función Python decorada con
-  `@app.get(...)` / `@app.post(...)` (ver `app/server.py`).
-- **Werkzeug** (la base de Flask) sirve la app con `make_server(threaded=True)`:
-  un **servidor WSGI multihilo** donde cada petición HTTP se atiende en un hilo
-  propio (`run.py`).
-- El mismo servidor sirve el **frontend estático** (`web/`) y los **vídeos**
-  (`/media/video/<id>`) con soporte de **peticiones HTTP Range** (respuestas
-  `206 Partial Content`): es lo que permite hacer *seek* en el reproductor de
-  vídeo sin descargar el archivo entero.
-- El middleware `after_request` controla **CORS** solo en `/api/fb/*`,
-  aceptando únicamente orígenes de Facebook o de la propia app (ver 11.8).
+- **Flask** is a Python micro-framework for HTTP. Here it defines a **REST
+  API** returning JSON: `GET /api/recipes`, `POST /api/recipes/<id>/transcribe`,
+  `POST /api/settings`… Each route is a Python function decorated with
+  `@app.get(...)` / `@app.post(...)` (see `app/server.py`).
+- **Werkzeug** (Flask's foundation) serves the app with
+  `make_server(threaded=True)`: a **multi-threaded WSGI server** where each
+  HTTP request is handled in its own thread (`run.py`).
+- The same server serves the **static frontend** (`web/`) and **videos**
+  (`/media/video/<id>`) with support for **HTTP Range requests** (responses
+  `206 Partial Content`): this is what allows *seeking* in the video player
+  without downloading the entire file.
+- The `after_request` middleware controls **CORS** only on `/api/fb/*`,
+  accepting only Facebook origins or the app's own origin (see 11.8).
 
-### 11.2 Persistencia: SQLite (sin servidor, sin ORM)
+### 11.2 Persistence: SQLite (embedded, no ORM)
 
-- **SQLite** es una base de datos **embebida**: no hay un proceso de base de
-  datos aparte, todo vive en un archivo (`data/recipes.db`). Perfecta para una
-  app local de un solo usuario.
-- Se usa el módulo estándar `sqlite3`, con `check_same_thread=False` porque
-  varios hilos acceden a la misma conexión, y un `threading.Lock` protege cada
-  operación de escritura (`app/database.py`).
-- Las listas (`tags`, `ingredients`, `steps`) se guardan como **texto JSON**
-  y se serializan/deserializan con `json.dumps` / `json.loads`.
-- La búsqueda sin distinguir tildes se hace **normalizando el texto a Unicode
-  NFD** y eliminando los caracteres de acentuación antes de comparar.
-- Hay índices sobre `status` y `category` para que los filtros de la biblioteca
-  sean rápidos aunque haya miles de recetas.
+- **SQLite** is an **embedded** database: there's no separate database
+  process, everything lives in a single file (`data/recipes.db`). Perfect for
+  a single-user local app.
+- It uses Python's standard `sqlite3` module, with `check_same_thread=False`
+  because multiple threads access the same connection, and a
+  `threading.Lock` protects every write operation (`app/database.py`).
+- Lists (`tags`, `ingredients`, `steps`) are stored as **JSON text** and
+  serialized/deserialized with `json.dumps` / `json.loads`.
+- Accent-insensitive search is achieved by **normalizing text to Unicode NFD**
+  and stripping diacritics before comparing.
+- Indexes on `status` and `category` keep library filters fast even with
+  thousands of recipes.
 
-### 11.3 Transcripción local: Whisper (faster-whisper)
+### 11.3 Local transcription: Whisper (faster-whisper)
 
-- **Whisper** es un modelo de aprendizaje automático de OpenAI para
-  **transcribir audio a texto** (publicado en el artículo *"Robust Speech
-  Recognition via Large-Scale Weak Supervision"*). Es un **transformer
-  encoder-decoder** entrenado con cientos de miles de horas de audio con
-  subtítulos, y soporta ~99 idiomas.
-- **faster-whisper** es una reimplementación sobre **CTranslate2** (motor de
-  inferencia optimizado para CPU/GPU). Aquí se usa con `compute_type="int8"`
-  (**cuantización a enteros de 8 bits**: ~4× más rápido y con menos memoria que
-  float32, a costa de una pérdida de precisión mínima) y `cpu_threads` para
-  paralelizar dentro del equipo (`app/transcription.py`).
-- Antes de transcribir, un **VAD** (Voice Activity Detection, de Silero)
-  descarta silencios y música de fondo: en vídeos de cocina eso evita
-  alucinaciones de texto en las partes sin voz.
-- La decodificación usa **beam search**; el modelo devuelve *segmentos* con su
-  timestamp, que la app va volcando a la base de datos en tiempo real.
-- Los tamaños `tiny`/`base`/`small`/`medium` son modelos del mismo Whisper con
-  distinto número de parámetros: más grande = más preciso, pero más lento y
-  más memoria (el `small` por defecto ocupa ~460 MB y se descarga de
-  **Hugging Face** la primera vez, a `~/.cache/huggingface`).
+- **Whisper** is an AI model from OpenAI for **transcribing audio to text**
+  (published in the paper *"Robust Speech Recognition via Large-Scale Weak
+  Supervision"*). It's a **transformer encoder-decoder** trained on hundreds
+  of thousands of hours of audio with subtitles, supporting ~99 languages.
+- **faster-whisper** is a reimplementation built on **CTranslate2** (an
+  inference engine optimized for CPU/GPU). Here it runs with
+  `compute_type="int8"` (**8-bit integer quantization**: ~4× faster and
+  less memory than float32, with minimal accuracy loss) and `cpu_threads`
+  for parallelization (`app/transcription.py`).
+- Before transcribing, a **VAD** (Voice Activity Detection, from Silero)
+  discards silence and background music: in cooking videos this prevents
+  text hallucinations during silent parts.
+- Decoding uses **beam search**; the model returns *segments* with timestamps
+  that the app streams to the database in real time.
+- The `tiny`/`base`/`small`/`medium` sizes are different parameter counts of
+  the same Whisper model: larger = more accurate, but slower and more memory
+  (the default `small` is ~460 MB, downloaded from **Hugging Face** on first
+  use to `~/.cache/huggingface`).
 
-### 11.4 La ventana nativa: pywebview y WebKitGTK
+### 11.4 The native window: pywebview and WebKitGTK
 
-- **pywebview** crea ventanas de escritorio con un motor web real dentro
-  (**WebKitGTK** en Linux, WebView2/WebKit en otros sistemas). Permite
-  combinar una interfaz web con APIs de Python.
-- Su **puente nativo** (`js_api`, el canal `jsBridge`) permite que el
-  JavaScript de una página llame a métodos de Python **sin pasar por HTTP**.
-  Es la pieza clave del importador de Facebook: el CSP de Facebook bloquea el
-  `fetch` hacia `127.0.0.1`, pero no puede bloquear este canal interno
-  (`app/window.py` y el script de captura en `app/fb.py`).
-- La inyección del botón flotante usa **user scripts de WebKit**: scripts que
-  se registran para ejecutarse en `document-start` de *cada* página que carga
-  la ventana, con un guard que solo actúa en `facebook.com`.
-- Con `private_mode=False` y `storage_path` la sesión (cookies) sobrevive al
-  cierre de la app; se guarda en `data/webview/`.
-- Detalle de concurrencia curioso: WebKitGTK **solo es seguro desde el hilo
-  principal**, así que las operaciones que vienen de hilos Python se programan
-  con `GLib.idle_add` (ver `_navigate_later` en `app/window.py`).
+- **pywebview** creates desktop windows with a real web engine inside
+  (**WebKitGTK** on Linux, WebView2/WebKit on other platforms). It allows
+  combining a web interface with Python APIs.
+- Its **native bridge** (`js_api`, the `jsBridge` channel) lets JavaScript on
+  a page call Python methods **without going through HTTP**. This is the key
+  piece of the Facebook importer: Facebook's CSP blocks `fetch` to
+  `127.0.0.1`, but it cannot block this internal channel (`app/window.py` and
+  the capture script in `app/fb.py`).
+- The floating button injection uses **WebKit user scripts**: scripts
+  registered to run at `document-start` of *every* page loaded in the window,
+  with a guard that only activates on `facebook.com`.
+- With `private_mode=False` and `storage_path`, the session (cookies)
+  survives app restarts; it's stored in `data/webview/`.
+- A notable concurrency detail: WebKitGTK **is only safe from the main
+  thread**, so operations from Python threads are scheduled with
+  `GLib.idle_add` (see `_navigate_later` in `app/window.py`).
 
-### 11.5 Descarga de vídeos: yt-dlp
+### 11.5 Video downloads: yt-dlp
 
-- **yt-dlp** (fork activo de youtube-dl) es una **CLI escrita en Python** capaz
-  de descargar vídeos de cientos de sitios, incluido Facebook.
-- La app lo lanza como **subproceso** (`subprocess.Popen`) y lee su salida en
-  vivo para mostrar el progreso: cada línea `[download] N%` se parsea con una
-  expresión regular y se guarda en la cola de descargas (`app/fb.py`).
-- Para las **colecciones privadas**, exporta las cookies de la sesión del
-  webview a un archivo en **formato Netscape** y se las pasa a `yt-dlp` con
-  `--cookies` (es el formato que esa herramienta espera).
-- La cancelación la aplica un **hilo vigilante** que llama a `proc.terminate()`
-  si el usuario pulsa Detener (necesario porque la salida de yt-dlp puede ir
-  almacenada en búfer y no llegar al bucle de lectura).
+- **yt-dlp** (an active fork of youtube-dl) is a **CLI written in Python**
+  capable of downloading videos from hundreds of sites, including Facebook.
+- The app launches it as a **subprocess** (`subprocess.Popen`) and reads its
+  output live to show progress: each `[download] N%` line is parsed with a
+  regex and stored in the download queue (`app/fb.py`).
+- For **private collections**, it exports the webview session cookies to a
+  file in **Netscape format** and passes them to `yt-dlp` with `--cookies`
+  (the format that tool expects).
+- Cancellation is handled by a **watchdog thread** that calls
+  `proc.terminate()` when the user clicks Stop (necessary because yt-dlp's
+  output may be buffered and not reach the reading loop).
 
-### 11.6 Metadatos y miniaturas: PyAV, ffmpeg y Pillow
+### 11.6 Metadata and thumbnails: PyAV, ffmpeg and Pillow
 
-- **PyAV** (bindings de Python para las librerías de **FFmpeg**) abre el vídeo
-  para leer su **duración** y extraer el **primer fotograma**.
-- **Pillow** redimensiona ese fotograma y lo guarda como JPEG (la miniatura de
-  la tarjeta de la receta).
-- Si PyAV no está disponible, hay *fallback* a los binarios del sistema
-  `ffprobe` y `ffmpeg` (`app/scanner.py`).
+- **PyAV** (Python bindings for the **FFmpeg** libraries) opens the video to
+  read its **duration** and extract the **first frame**.
+- **Pillow** resizes that frame and saves it as JPEG (the thumbnail on the
+  recipe card).
+- If PyAV isn't available, there's a *fallback* to system binaries `ffprobe`
+  and `ffmpeg` (`app/scanner.py`).
 
-### 11.7 Frontend: HTML, CSS y JavaScript (sin frameworks)
+### 11.7 Frontend: HTML, CSS and JavaScript (no frameworks)
 
-- No hay React ni Vue: la interfaz es **JS vanilla** ("use strict"). El DOM se
-  construye con *template literals*, se escapan los valores con `esc()` para
-  evitar inyección de HTML, y las llamadas a la API usan **fetch** con JSON.
-- El "tiempo real" se consigue por **polling**: un `setInterval` consulta el
-  estado cada 1,5 s (`/api/transcription/jobs`, estado de descargas, …) y
-  redibuja lo que cambió. Es la solución sencilla; para este volumen de datos
-  no hace falta WebSocket ni SSE.
-- El reproductor es la etiqueta HTML `<video>` alimentada por el endpoint
-  `/media/video/<id>` con soporte Range (ver 11.1).
+- There's no React or Vue: the interface is **vanilla JS** (`"use strict"`).
+  The DOM is built with *template literals*, values are escaped with `esc()`
+  to prevent HTML injection, and API calls use **fetch** with JSON.
+- "Real-time" is achieved by **polling**: a `setInterval` checks the status
+  every 1.5 seconds (`/api/transcription/jobs`, download status, …) and
+  re-renders what changed. It's the simple solution; for this data volume
+  there's no need for WebSocket or SSE.
+- The player is an HTML `<video>` tag fed by the `/media/video/<id>`
+  endpoint with Range support (see 11.1).
 
-### 11.8 Concurrencia y seguridad web, aplicadas de verdad
+### 11.8 Concurrency and web security, applied for real
 
-Este proyecto es un buen caso de estudio porque junta varios conceptos que en
-clase parecen teoría:
+This project is a great case study because it brings together several
+concepts that can feel like theory in class:
 
-- **Contenido mixto (mixed content):** una página HTTPS no puede hacer
-  peticiones a `http://127.0.0.1`. Como Facebook es HTTPS, la app se sirve a sí
-  misma por **HTTPS local con certificado autofirmado** (generado con
-  `openssl` en `data/cert/`). Un certificado autofirmado es válido para
-  localhost, pero los navegadores lo rechazarían en cualquier otro sitio.
-- **CSP (Content-Security-Policy):** Facebook prohíbe a sus páginas hacer
-  `fetch` hacia direcciones locales. Por eso el botón flotante envía los vídeos
-  por el **canal nativo de pywebview** (jsBridge), que no es una petición HTTP
-  y no le aplica el CSP.
-- **CORS, CSRF y DNS-rebinding:** el servidor local acepta peticiones de
-  Facebook o de la propia app, y rechaza cualquier otro origen (`Origin`). Así,
-  una página web maliciosa no puede hacer que tu servidor local descargue
-  vídeos sin tu permiso.
-- **El servidor solo escucha en `127.0.0.1`**: no hay puertos abiertos a la
-  red. De tu equipo solo salen la descarga inicial del modelo (Hugging Face) y
-  las descargas de vídeos de yt-dlp.
+- **Mixed content:** an HTTPS page cannot make requests to
+  `http://127.0.0.1`. Since Facebook is HTTPS, the app serves itself over
+  **local HTTPS with a self-signed certificate** (generated with `openssl`
+  in `data/cert/`). A self-signed certificate is valid for localhost, but
+  browsers would reject it on any other site.
+- **CSP (Content-Security-Policy):** Facebook forbids its pages from making
+  `fetch` requests to local addresses. That's why the floating button sends
+  videos through the **native pywebview channel** (jsBridge), which isn't an
+  HTTP request and isn't subject to CSP.
+- **CORS, CSRF and DNS-rebinding:** the local server accepts requests from
+  Facebook or from the app itself, and rejects any other origin (`Origin`).
+  This way a malicious web page can't trick your local server into downloading
+  videos without your permission.
+- **The server only listens on `127.0.0.1`**: there are no ports open to the
+  network. The only outbound traffic from your machine is the initial model
+  download (from Hugging Face) and yt-dlp video downloads.
 
-### 11.9 Dónde se guardan los archivos descargados (mapa de rutas)
+### 11.9 Where downloaded files are stored (path map)
 
-Una duda muy típica: "¿y esto dónde se ha descargado?". Aquí tienes el mapa
-completo. Distingue dos sitios: **dentro del proyecto** (carpeta `data/`, que
-se crea al primer uso) y **fuera, en tu carpeta de usuario** (cachés y vídeos).
+A very common question: "where was this downloaded to?". Here's the complete
+map. It splits into two locations: **inside the project** (the `data/`
+folder, created on first use) and **outside, in your user folder** (caches
+and videos).
 
-| Ruta | Qué contiene | ¿Cómo llega ahí? |
+| Path | What it contains | How it gets there |
 |---|---|---|
-| `data/recipes.db` | Base de datos SQLite: recetas, transcripciones, estado | La crea y la escribe la app |
-| `data/thumbs/` | Miniaturas JPEG de cada vídeo (`thumb_<id>.jpg`) | Las genera la app con PyAV/Pillow |
-| `data/settings.json` | Ajustes: carpeta de vídeos, modelo, idioma, hilos, VAD | Los guardas tú desde **Ajustes** |
-| `data/webview/` | Perfil del navegador embebido: cookies y sesión de Facebook | Lo persiste pywebview (`private_mode=False`); si lo borras, tendrás que iniciar sesión otra vez |
-| `data/cookies/fb_cookies.txt` | Cookies de tu sesión de Facebook en formato Netscape, para `yt-dlp` | Se exportan desde el webview en cada captura (colecciones privadas) |
-| `data/cert/` | Certificado HTTPS autofirmado (`cert.pem`, `key.pem`) | Lo genera `openssl` la primera vez (`run.py`) |
-| `venv/` | Todos los paquetes de Python instalados con pip (Flask, faster-whisper, pywebview…) | Se crea con `python3 -m venv venv` y `pip install -r requirements.txt` |
-| `venv/lib/python3.*/site-packages/faster_whisper/assets/silero_vad.onnx` | Modelo **VAD de Silero** (detección de voz) | Viene **incluido en el paquete pip** de faster-whisper; no se descarga aparte |
-| `~/.cache/huggingface/hub/models--Systran--faster-whisper-small/` | Modelo de Whisper **small** (~460 MB) | Se descarga de **Hugging Face** la primera vez que transcribes. El nombre cambia con el modelo elegido (`...faster-whisper-tiny/`, `...-base/`, `...-medium/`) |
-| `~/Videos/Recetas` | **Los vídeos descargados** de Facebook con yt-dlp | Carpeta vigilada; se puede cambiar en **Ajustes**. Ahí es donde la app busca vídeos nuevos |
+| `data/recipes.db` | SQLite database: recipes, transcriptions, status | Created and written by the app |
+| `data/thumbs/` | JPEG thumbnails for each video (`thumb_<id>.jpg`) | Generated by the app with PyAV/Pillow |
+| `data/settings.json` | Settings: video folder, model, language, threads, VAD | Saved by you from **Settings** |
+| `data/webview/` | Embedded browser profile: cookies and Facebook session | Persisted by pywebview (`private_mode=False`); if you delete it you'll need to log in again |
+| `data/cookies/fb_cookies.txt` | Your Facebook session cookies in Netscape format, for `yt-dlp` | Exported from the webview on each capture (private collections) |
+| `data/cert/` | Self-signed HTTPS certificate (`cert.pem`, `key.pem`) | Generated by `openssl` on first run (`run.py`) |
+| `venv/` | All Python packages installed via pip (Flask, faster-whisper, pywebview…) | Created with `python3 -m venv venv` and `pip install -r requirements.txt` |
+| `venv/lib/python3.*/site-packages/faster_whisper/assets/silero_vad.onnx` | **Silero VAD** model (voice detection) | **Bundled inside** the faster-whisper pip package; not downloaded separately |
+| `~/.cache/huggingface/hub/models--Systran--faster-whisper-small/` | Whisper **small** model (~460 MB) | Downloaded from **Hugging Face** on your first transcription. The folder name changes with the chosen model (`...faster-whisper-tiny/`, `...-base/`, `...-medium/`) |
+| `~/Videos/Recetas` | **Downloaded videos** from Facebook via yt-dlp | The watched folder; configurable in **Settings**. This is where the app looks for new videos |
 
-**Qué se puede borrar sin miedo y qué no:**
+**What can be safely deleted and what can't:**
 
-- `data/` es **tu información** (recetas, transcripciones, sesión de Facebook):
-  no se toca si reinstalas. Es lo único que conviene **respaldar**.
-- `venv/` se puede borrar y recrear cuando quieras (pasos 2-4 de la
-  instalación): los datos no están ahí. Lo mismo vale para `data/cert/` (se
-  regenera solo) y `data/cookies/` (se refresca en la siguiente captura).
-- `~/.cache/huggingface/` es solo caché: si la borras, el modelo de Whisper se
-  **vuelve a descargar** en la próxima transcripción (~460 MB, solo una vez).
-- Los vídeos de `~/Videos/Recetas` son **tus archivos**: borrarlos desde la app
-  (botón de eliminar) o a mano los quita del disco; la base de datos guarda la
-  referencia, por eso la app detecta si un vídeo "ya no existe".
+- `data/` is **your information** (recipes, transcriptions, Facebook
+  session): it's not touched if you reinstall. It's the only thing worth
+  **backing up**.
+- `venv/` can be deleted and recreated anytime (steps 2–4 of installation):
+  your data isn't stored there. Same goes for `data/cert/` (regenerated
+  automatically) and `data/cookies/` (refreshed on next capture).
+- `~/.cache/huggingface/` is just cache: if you delete it, the Whisper model
+  will be **re-downloaded** on the next transcription (~460 MB, only once).
+- The videos in `~/Videos/Recetas` are **your files**: deleting them from the
+  app (delete button) or manually removes them from disk; the database keeps
+  the reference, which is how the app detects when a video "no longer exists".
 
-### 11.10 Para profundizar
+### 11.10 For further reading
 
-Si quieres estudiar el código, este es el orden recomendado:
+If you want to study the code, here's the recommended order:
 
 ```
-run.py                  → cómo arranca todo (servidor, HTTPS, ventana)
-app/server.py           → la API REST y el servidor de medios
-app/database.py         → capa de persistencia (SQLite + hilos)
-app/transcription.py    → Whisper: modelo, VAD, cola y cancelación
-app/window.py           → pywebview: puente nativo y user scripts
-app/fb.py               → yt-dlp, cookies Netscape y script de captura
-web/app.js              → frontend: fetch, polling y render del DOM
+run.py                  → how everything starts (server, HTTPS, window)
+app/server.py           → the REST API and media server
+app/database.py         → persistence layer (SQLite + threads)
+app/transcription.py    → Whisper: model, VAD, queue and cancellation
+app/window.py           → pywebview: native bridge and user scripts
+app/fb.py               → yt-dlp, Netscape cookies and capture script
+web/app.js              → frontend: fetch, polling and DOM rendering
 ```
 
-Documentación oficial de las piezas clave: [Flask](https://flask.palletsprojects.com/),
-[SQLite](https://www.sqlite.org/docs.html), [faster-whisper](https://github.com/SYSTRAN/faster-whisper),
-[pywebview](https://pywebview.flowrl.com/), [yt-dlp](https://github.com/yt-dlp/yt-dlp),
-y el artículo de [Whisper](https://cdn.openai.com/papers/whisper.pdf).
+Official documentation for the key pieces:
+[Flask](https://flask.palletsprojects.com/),
+[SQLite](https://www.sqlite.org/docs.html),
+[faster-whisper](https://github.com/SYSTRAN/faster-whisper),
+[pywebview](https://pywebview.flowrl.com/),
+[yt-dlp](https://github.com/yt-dlp/yt-dlp),
+and the [Whisper paper](https://cdn.openai.com/papers/whisper.pdf).

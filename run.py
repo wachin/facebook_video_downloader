@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mi Recetario — gestor de recetas de cocina en vídeo.
+"""Facebook Collections Downloader — gestor de recetas de cocina en vídeo.
 
 Uso:
     python3 run.py            → ventana nativa (por defecto)
@@ -67,7 +67,7 @@ def keep_alive() -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Mi Recetario")
+    parser = argparse.ArgumentParser(description="Facebook Collections Downloader")
     parser.add_argument("--web", action="store_true",
                         help="Abrir en el navegador en lugar de la ventana nativa")
     parser.add_argument("--serve", action="store_true",
@@ -99,11 +99,11 @@ def main() -> None:
         ctx.load_cert_chain(str(cert[0]), str(cert[1]))
         server = make_server(args.host, port, app, threaded=True, ssl_context=ctx)
         url = f"https://127.0.0.1:{port}/"
-        print(f"🍲 Mi Recetario disponible en {url} (HTTPS local)")
+        print(f"🍲 Facebook Collections Downloader disponible en {url} (HTTPS local)")
     else:
         server = make_server(args.host, port, app, threaded=True)
         url = f"http://{args.host}:{port}/"
-        print(f"🍲 Mi Recetario disponible en {url}")
+        print(f"🍲 Facebook Collections Downloader disponible en {url}")
         if not args.web and not args.serve:
             print("⚠ Aviso: no se pudo activar HTTPS local (¿falta openssl?). "
                   "La captura desde Facebook no funcionará.")
@@ -131,7 +131,7 @@ def main() -> None:
         return
 
     webview.create_window(
-        "Mi Recetario",
+        "Facebook Collections Downloader",
         url,
         width=1320,
         height=860,

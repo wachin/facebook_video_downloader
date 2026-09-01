@@ -1,1 +1,1 @@
-"""Mi Recetario — gestor local de recetas de cocina en vídeo."""
+"""Facebook Collections Downloader — gestor local de recetas de cocina en vídeo."""

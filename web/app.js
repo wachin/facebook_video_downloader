@@ -1,4 +1,4 @@
-/* Mi Recetario — lógica de la interfaz */
+/* Facebook Collections Downloader — lógica de la interfaz */
 "use strict";
 
 /* ============================================================ utilidades */
@@ -657,7 +657,7 @@ async function checkYtdlp() {
     const info = await api("/api/fb/ytdlp");
     hint.innerHTML = info.available
       ? (native()
-          ? "Se abre en una ventana nueva; Mi Recetario se queda abierto."
+          ? "Se abre en una ventana nueva; Facebook Collections Downloader se queda abierto."
           : "Se abre en tu navegador (usa el bookmarklet del paso 2).")
       : "⚠ Falta <code>yt-dlp</code>: instálalo con <code>sudo apt install yt-dlp</code> para poder descargar.";
   } catch (_) { /* servidor aún arrancando */ }
@@ -667,7 +667,7 @@ async function openFacebook() {
   if (native()) {
     try {
       await window.pywebview.api.open_facebook();
-      toast("Abriendo Facebook en una ventana nueva. Mi Recetario se queda abierto para ver el progreso.");
+      toast("Abriendo Facebook en una ventana nueva. Facebook Collections Downloader se queda abierto para ver el progreso.");
     } catch (_) {
       window.open("https://www.facebook.com/saved/", "_blank");
     }

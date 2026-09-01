@@ -35,7 +35,7 @@ from . import config, database as db, scanner
 #    envía con `download: true` para que el servidor arranque yt-dlp con toda
 #    la colección de una vez.
 #  - «📥 Enviar vídeos visibles»: solo los vídeos actualmente en pantalla.
-#  - «↩ Cerrar Facebook»: cierra la ventana de Facebook (Mi Recetario sigue
+#  - «↩ Cerrar Facebook»: cierra la ventana de Facebook (Facebook Collections Downloader sigue
 #    abierto en su propia ventana).
 def build_capture_script(server_url: str) -> str:
     return r"""
@@ -130,7 +130,7 @@ def build_capture_script(server_url: str) -> str:
     if (!urls.length) { toast('No se encontraron vídeos en esta página. Desplázate y vuelve a pulsar.', true); return; }
     var n = urls.length;
     var msg = '✓ ' + n + ' vídeo' + (n === 1 ? '' : 's') +
-      (download ? ' — ¡descargando la colección! El progreso está en Mi Recetario' : ' enviado' + (n === 1 ? '' : 's') + ' a Mi Recetario');
+      (download ? ' — ¡descargando la colección! El progreso está en Facebook Collections Downloader' : ' enviado' + (n === 1 ? '' : 's') + ' a Facebook Collections Downloader');
 
     // 1) Canal nativo (ventana de la app): el mensaje va DIRECTO a Python por
     // el puente de WebKit (script message handler 'jsBridge' de pywebview,
@@ -165,12 +165,12 @@ def build_capture_script(server_url: str) -> str:
         if (j.download && !j.download.ok) { toast(j.download.message, true); return; }
         if (j.added) {
           toast('✓ ' + j.added + ' vídeo' + (j.added === 1 ? '' : 's') +
-            (j.download && j.download.ok ? ' — ¡descargando la colección!' : ' enviado' + (j.added === 1 ? '' : 's') + ' a Mi Recetario'));
+            (j.download && j.download.ok ? ' — ¡descargando la colección!' : ' enviado' + (j.added === 1 ? '' : 's') + ' a Facebook Collections Downloader'));
         } else {
           toast('Sin vídeos nuevos (ya estaban capturados).');
         }
       })
-      .catch(function () { toast('Error al enviar. ¿Está Mi Recetario abierto?', true); });
+      .catch(function () { toast('Error al enviar. ¿Está Facebook Collections Downloader abierto?', true); });
   }
 
   // Baja el scroll de la ventana (y, si no funciona, del contenedor interno
@@ -254,7 +254,7 @@ def build_capture_script(server_url: str) -> str:
 
   function goHome() {
     // Dentro de la ventana de la app, el canal nativo jsBridge está disponible:
-    // cerramos la ventana de Facebook (Mi Recetario sigue abierto). En un
+    // cerramos la ventana de Facebook (Facebook Collections Downloader sigue abierto). En un
     // navegador externo (bookmarklet) navegamos a la app como respaldo.
     if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.jsBridge) {
       window.pywebview.api.go_home();
@@ -323,7 +323,7 @@ def write_cookies_netscape(cookies, path) -> int:
     descargan con la sesión iniciada, y yt-dlp necesita estas cookies para
     poder descargarlos (no ve el navegador).
     """
-    lines = ["# Netscape HTTP Cookie File", "# Generado por Mi Recetario", ""]
+    lines = ["# Netscape HTTP Cookie File", "# Generado por Facebook Collections Downloader", ""]
     written = 0
     for cookie in cookies:
         try:

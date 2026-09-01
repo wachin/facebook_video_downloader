@@ -3,7 +3,7 @@
 Los métodos de esta clase quedan disponibles en el frontend como
 `window.pywebview.api.<método>()` cuando la app corre en modo ventana nativa.
 
-Facebook se abre en una **segunda ventana** independiente: Mi Recetario se
+Facebook se abre en una **segunda ventana** independiente: Facebook Collections Downloader se
 queda abierto en su propia ventana para que puedas ver el progreso de las
 descargas mientras navegas por Facebook. Ambas ventanas comparten el MISMO
 objeto Api (se pasa `js_api=self` a las dos), así que el canal nativo de WebKit
@@ -40,7 +40,7 @@ NAV_DELAY = 1.0
 class Api:
     def __init__(self, app_url: str = "http://127.0.0.1:8000/") -> None:
         self.app_url = app_url.rstrip("/") + "/"
-        # Ventana de Facebook (segunda ventana). Mi Recetario vive en su propia
+        # Ventana de Facebook (segunda ventana). Facebook Collections Downloader vive en su propia
         # ventana y nunca se cierra al abrir Facebook.
         self._fb_window: webview.Window | None = None
         self._fb_opening = False   # evita abrir dos ventanas con clics seguidos
@@ -73,7 +73,7 @@ class Api:
     # ------------------------------------------------------ Facebook
 
     def open_facebook(self) -> bool:
-        """Abre Facebook en una ventana NUEVA, sin cerrar Mi Recetario.
+        """Abre Facebook en una ventana NUEVA, sin cerrar Facebook Collections Downloader.
 
         Devuelve `True` de inmediato (para que pywebview entregue el valor de
         retorno al frontend de la app) y la apertura se lanza desde un hilo:
@@ -99,7 +99,7 @@ class Api:
             return False
 
     def go_home(self) -> None:
-        """Cierra la ventana de Facebook; Mi Recetario sigue abierto.
+        """Cierra la ventana de Facebook; Facebook Collections Downloader sigue abierto.
 
         El botón «↩ Cerrar Facebook» de la página de Facebook la invoca por el
         canal nativo jsBridge. Si no hay ventana de Facebook (modo navegador),
@@ -188,7 +188,7 @@ class Api:
         """
         try:
             win = webview.create_window(
-                "Facebook — Mi Recetario",
+                "Facebook — Facebook Collections Downloader",
                 self.app_url,
                 js_api=self,
                 width=1280,
