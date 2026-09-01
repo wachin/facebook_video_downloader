@@ -1,6 +1,6 @@
-# 🍲 Facebook Collections Downloader — recetas de cocina en vídeo
+# Facebook Video Downloader
 
-Un programa de escritorio para tu colección de **vídeos de recetas de Facebook**:
+Un programa de escritorio para tu colección de **vídeos  de Facebook**:
 
 1. **Organiza** los vídeos que has guardado en una carpeta de tu equipo.
 2. **Transcríbelos a texto** de forma local con Whisper (español incluido) —
@@ -22,7 +22,7 @@ Facebook Collections Downloader incluye un **importador de Facebook** integrado:
 vídeos de tus *colecciones guardadas* y los descarga con un clic, sin
 necesidad de herramientas externas.
 
-### 📥 El flujo recomendado: la pestaña «Facebook»
+### El flujo recomendado: la pestaña «Facebook»
 
 1. Abre Facebook Collections Downloader y pulsa **Facebook → Abrir Facebook**. Se abre una
    **ventana nueva** con Facebook y Facebook Collections Downloader se queda abierto en la suya.
@@ -71,7 +71,7 @@ sudo apt install yt-dlp
 > directo a la app sin pasar por la red. Ni el CSP, ni CORS ni el contenido
 > mixto pueden bloquearlo.
 
-### 🖱️ Alternativa manual (sin usar la pestaña Facebook)
+### Alternativa manual (sin usar la pestaña Facebook)
 
 Si prefieres el método 100 % manual, también puedes:
 
@@ -181,7 +181,7 @@ Se abrirá la ventana de **Facebook Collections Downloader**. 🎉
 El entorno virtual se **activa** cuando quieres usar `pip` o `python` dentro
 de él, y se **desactiva** cuando terminas.
 
-### 🔓 Activar
+### Activar
 
 ```bash
 source venv/bin/activate
@@ -196,7 +196,7 @@ Verás `(venv)` al principio de la línea del terminal:
 Mientras esté ese `(venv)`, los comandos `python` y `pip` usan el entorno
 del proyecto. Cuando lo cierres (cerrando la ventana), se desactiva solo.
 
-### 🔒 Desactivar
+### Desactivar
 
 ```bash
 deactivate
@@ -205,7 +205,7 @@ deactivate
 El `(venv)` desaparece de la línea y vuelves al sistema normal. (Si no lo
 has activado antes, no hay nada que desactivar.)
 
-### 🤓 Truco: no hace falta activar para usar la app
+### Truco: no hace falta activar para usar la app
 
 Para **lanzar el programa** no necesitas activar nada. Este comando funciona
 siempre, estés donde estés (dentro de la carpeta del proyecto):
