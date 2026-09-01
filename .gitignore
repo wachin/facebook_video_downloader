@@ -19,6 +19,9 @@ __pycache__/
 # faster-whisper guarda los modelos en ~/.cache/huggingface
 .cache/huggingface/
 
+# ── Archivos compilados de traducción (.qm generados de .ts) ─
+locale/*.qm
+
 # ── Sistema operativo ───────────────────────────────────────
 .DS_Store
 Thumbs.db

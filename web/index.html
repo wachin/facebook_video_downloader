@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,19 +16,19 @@
       <div class="brand-logo">🍲</div>
       <div>
         <div class="brand-name">Facebook Collections Downloader</div>
-        <div class="brand-sub">Recetas de cocina en vídeo</div>
+        <div class="brand-sub" data-i18n="Cooking recipe videos">Cooking recipe videos</div>
       </div>
     </div>
 
     <nav id="nav">
       <button class="nav-item active" data-view="library">
         <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
-        Biblioteca
+        <span data-i18n="Library">Library</span>
         <span class="nav-count" id="nav-count"></span>
       </button>
       <button class="nav-item" data-view="queue">
         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-        Cola de transcripción
+        <span data-i18n="Transcription queue">Transcription queue</span>
         <span class="nav-badge hidden" id="nav-badge">0</span>
       </button>
       <button class="nav-item" data-view="facebook">
@@ -37,7 +37,7 @@
       </button>
       <button class="nav-item" data-view="settings">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg>
-        Ajustes
+        <span data-i18n="Settings">Settings</span>
       </button>
     </nav>
 
@@ -46,9 +46,9 @@
     <div class="side-footer">
       <button class="side-link" id="btn-open-folder">
         <svg viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-        Abrir carpeta de vídeos
+        <span data-i18n="Open video folder">Open video folder</span>
       </button>
-      <div class="side-version">v1.0 · local y privado</div>
+      <div class="side-version" data-i18n="v1.0 · local and private">v1.0 · local and private</div>
     </div>
   </aside>
 
@@ -60,14 +60,14 @@
       <header class="toolbar">
         <div class="search-box">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-          <input id="search-input" type="search" placeholder="Buscar por título, ingredientes o texto…" autocomplete="off">
+          <input id="search-input" type="search" placeholder="Search by title, ingredients or text…" data-i18n-placeholder="Search by title, ingredients or text…" autocomplete="off">
         </div>
         <div class="toolbar-actions">
-          <button id="btn-import" class="btn btn-ghost" title="Importar vídeos desde el equipo">
+          <button id="btn-import" class="btn btn-ghost" title="Import videos from your computer" data-i18n-title="Import videos from your computer">
             <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-            Importar
+            <span data-i18n="Import">Import</span>
           </button>
-          <button id="btn-rescan" class="btn btn-ghost" title="Escanear la carpeta de vídeos">
+          <button id="btn-rescan" class="btn btn-ghost" title="Scan the video folder" data-i18n-title="Scan the video folder">
             <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2 5.3"/><path d="M20 4v7h-7"/></svg>
           </button>
         </div>
@@ -79,7 +79,7 @@
       <div id="dropzone" class="dropzone">
         <div class="drop-hint">
           <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-          Suelta los vídeos aquí para importarlos
+          <span data-i18n="Drop videos here to import them">Drop videos here to import them</span>
         </div>
         <div id="library-grid" class="grid"></div>
         <div id="empty-state" class="empty hidden"></div>
@@ -90,12 +90,12 @@
     <section id="view-queue" class="view hidden">
       <header class="toolbar">
         <div>
-          <h2 class="view-title">Cola de transcripción</h2>
-          <p class="view-sub">Los vídeos pendientes se convierten en texto con Whisper, en tu propio equipo.</p>
+          <h2 class="view-title" data-i18n="Transcription queue">Transcription queue</h2>
+          <p class="view-sub" data-i18n="Pending videos are converted to text with Whisper, on your own computer.">Pending videos are converted to text with Whisper, on your own computer.</p>
         </div>
         <button id="btn-transcribe-all" class="btn btn-primary">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-          Transcribir todo
+          <span data-i18n="Transcribe all">Transcribe all</span>
         </button>
       </header>
       <div id="queue-list"></div>
@@ -105,8 +105,8 @@
     <section id="view-facebook" class="view hidden">
       <header class="toolbar">
         <div>
-          <h2 class="view-title">Importar desde Facebook</h2>
-          <p class="view-sub">Inicia sesión tú mismo en Facebook y captura tus vídeos guardados. Facebook Collections Downloader nunca ve tu contraseña.</p>
+          <h2 class="view-title" data-i18n="Import from Facebook">Import from Facebook</h2>
+          <p class="view-sub" data-i18n="Log in to Facebook yourself and capture your saved videos. Facebook Collections Downloader never sees your password.">Log in to Facebook yourself and capture your saved videos. Facebook Collections Downloader never sees your password.</p>
         </div>
       </header>
 
@@ -114,12 +114,12 @@
         <div class="fb-step">
           <div class="fb-step-num">1</div>
           <div class="fb-step-body">
-            <strong>Abre Facebook</strong>
-            <p>Se abre en una <b>ventana nueva</b>: Facebook Collections Downloader se queda abierto para que veas el progreso de las descargas. Inicia sesión como siempre, con tu verificación en dos pasos.</p>
+            <strong data-i18n="Open Facebook">Open Facebook</strong>
+            <p data-i18n="Opens in a new window: Facebook Collections Downloader stays open so you can see download progress. Log in as usual, with your two-factor verification.">Opens in a new window: Facebook Collections Downloader stays open so you can see download progress. Log in as usual, with your two-factor verification.</p>
             <div class="fb-step-actions">
               <button id="fb-open" class="btn btn-primary">
                 <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-                Abrir Facebook
+                <span data-i18n="Open Facebook">Open Facebook</span>
               </button>
               <span class="faint" id="fb-open-hint"></span>
             </div>
@@ -129,23 +129,23 @@
         <div class="fb-step">
           <div class="fb-step-num">2</div>
           <div class="fb-step-body">
-            <strong>Captura los vídeos</strong>
-            <p>En tu página de guardados (o dentro de una colección), abajo a la derecha verás los botones de Facebook Collections Downloader:</p>
+            <strong data-i18n="Capture videos">Capture videos</strong>
+            <p data-i18n="On your saved page (or inside a collection), at the bottom-right you'll see Facebook Collections Downloader's buttons:">On your saved page (or inside a collection), at the bottom-right you'll see Facebook Collections Downloader's buttons:</p>
             <ul class="fb-feature-list">
-              <li><em>«⬇️ Descargar toda la colección»</em> — baja automáticamente por toda la colección, recopila todos los vídeos y los descarga con yt-dlp.</li>
-              <li><em>«📥 Enviar vídeos visibles»</em> — solo los vídeos que se ven en pantalla.</li>
-              <li><em>«↩ Cerrar Facebook»</em> — cierra la ventana de Facebook; Facebook Collections Downloader sigue abierto.</li>
+              <li data-i18n="«⬇️ Download entire collection» — automatically scrolls through the entire collection, gathers all videos and downloads them with yt-dlp."><em>«⬇️ Download entire collection»</em> — automatically scrolls through the entire collection, gathers all videos and downloads them with yt-dlp.</li>
+              <li data-i18n="«📥 Send visible videos» — only videos currently on screen."><em>«📥 Send visible videos»</em> — only videos currently on screen.</li>
+              <li data-i18n="«↩ Close Facebook» — closes the Facebook window; Facebook Collections Downloader stays open."><em>«↩ Close Facebook»</em> — closes the Facebook window; Facebook Collections Downloader stays open.</li>
             </ul>
             <button id="fb-capture" class="btn btn-ghost">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
-              Capturar ahora (si ya estás en Facebook)
+              <span data-i18n="Capture now (if you're already on Facebook)">Capture now (if you're already on Facebook)</span>
             </button>
             <div class="bookmark-wrap">
-              <button id="fb-bookmark-toggle" class="btn btn-mini">¿Prefieres usar tu navegador? Ver el bookmarklet</button>
+              <button id="fb-bookmark-toggle" class="btn btn-mini" data-i18n="Prefer to use your browser? See the bookmarklet">Prefer to use your browser? See the bookmarklet</button>
               <div id="fb-bookmark" class="bookmark-box hidden">
-                <p>Arrastra este enlace a la barra de marcadores de tu navegador y haz clic en él estando en tu página de guardados (aparecerán los mismos botones):</p>
+                <p data-i18n="Drag this link to your browser's bookmarks bar and click it while on your saved page (the same buttons will appear):">Drag this link to your browser's bookmarks bar and click it while on your saved page (the same buttons will appear):</p>
                 <a id="fb-bookmark-link" class="bookmark-link" href="#" draggable="true">📥 Herramientas de Facebook Collections Downloader</a>
-                <button id="fb-bookmark-copy" class="btn btn-mini">Copiar el código</button>
+                <button id="fb-bookmark-copy" class="btn btn-mini" data-i18n="Copy code">Copy code</button>
                 <textarea id="fb-bookmark-code" readonly spellcheck="false"></textarea>
               </div>
             </div>
@@ -155,8 +155,8 @@
         <div class="fb-step">
           <div class="fb-step-num">3</div>
           <div class="fb-step-body">
-            <strong>Selecciona y descarga</strong>
-            <p>Marca los vídeos capturados y descárgalos, o usa «⬇️ Descargar toda la colección» directamente desde Facebook. Todo se guarda en tu carpeta de vídeos y aparece en la Biblioteca. El progreso de la descarga se ve aquí, en esta pestaña, o en el <b>indicador inferior</b> que aparece desde cualquier pestaña mientras se descarga.</p>
+            <strong data-i18n="Select and download">Select and download</strong>
+            <p data-i18n="Check the captured videos and download them, or use «⬇️ Download entire collection» directly from Facebook. Everything is saved to your video folder and appears in the Library. Download progress is shown here on this tab, or in the bottom indicator visible from any tab while downloading.">Check the captured videos and download them, or use «⬇️ Download entire collection» directly from Facebook. Everything is saved to your video folder and appears in the Library. Download progress is shown here on this tab, or in the bottom indicator visible from any tab while downloading.</p>
           </div>
         </div>
       </div>
@@ -164,11 +164,11 @@
       <div class="fb-download-bar">
         <button id="fb-download" class="btn btn-primary" disabled>
           <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-          Descargar seleccionados
+          <span data-i18n="Download selected">Download selected</span>
         </button>
         <span class="faint" id="fb-count"></span>
         <span class="spacer"></span>
-        <button id="fb-clear" class="btn btn-ghost">Vaciar lista</button>
+        <button id="fb-clear" class="btn btn-ghost" data-i18n="Clear list">Clear list</button>
       </div>
       <div id="fb-list" class="fb-list"></div>
       <div id="fb-download-progress"></div>
@@ -176,8 +176,8 @@
 
     <!-- ---- Ajustes ---- -->
     <section id="view-settings" class="view hidden">
-      <h2 class="view-title">Ajustes</h2>
-      <p class="view-sub">Configura dónde están tus vídeos y cómo se transcriben.</p>
+      <h2 class="view-title" data-i18n="Settings">Settings</h2>
+      <p class="view-sub" data-i18n="Configure where your videos are and how they are transcribed.">Configure where your videos are and how they are transcribed.</p>
       <div class="settings-grid" id="settings-form"></div>
     </section>
   </main>
@@ -191,19 +191,19 @@
   <div class="editor-panel" role="dialog" aria-label="Editor de receta">
     <header class="editor-header">
       <div class="ed-title-wrap">
-        <input id="ed-title" class="ed-title" placeholder="Título de la receta" autocomplete="off">
+        <input id="ed-title" class="ed-title" placeholder="Recipe title" data-i18n-placeholder="Recipe title" autocomplete="off">
         <span class="ed-title-underline"></span>
       </div>
       <div class="editor-actions">
-        <button id="ed-transcribe" class="btn btn-ghost" title="Transcribir este vídeo">
+        <button id="ed-transcribe" class="btn btn-ghost" title="Transcribe this video" data-i18n-title="Transcribir este vídeo">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-          Transcribir
+          <span data-i18n="Transcribe">Transcribe</span>
         </button>
-        <button id="ed-export" class="btn btn-ghost" title="Exportar a Markdown">
+        <button id="ed-export" class="btn btn-ghost" title="Export to Markdown" data-i18n-title="Export to Markdown">
           <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-          Exportar
+          <span data-i18n="Export">Export</span>
         </button>
-        <button id="ed-close" class="btn btn-icon" title="Cerrar (Esc)">
+        <button id="ed-close" class="btn btn-icon" title="Close (Esc)" data-i18n-title="Close (Esc)">
           <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
       </div>
@@ -214,7 +214,7 @@
         <div class="video-wrap">
           <video id="ed-video" controls preload="metadata"></video>
           <div class="video-missing hidden" id="ed-video-missing">
-            El archivo de vídeo no se encuentra.
+            <span data-i18n="Video file not found.">Video file not found.</span>
           </div>
         </div>
 
@@ -222,44 +222,44 @@
           <div class="panel-head">
             <span class="panel-title">
               <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
-              Transcripción
+              <span data-i18n="Transcription">Transcription</span>
             </span>
             <span class="trans-status" id="ed-trans-status"></span>
             <span class="spacer"></span>
             <button id="ed-copy-trans" class="btn btn-mini">
               <svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-              Copiar
+              <span data-i18n="Copy">Copy</span>
             </button>
           </div>
-          <textarea id="ed-transcript" placeholder="El texto transcrito aparecerá aquí. También puedes editarlo a mano."></textarea>
+          <textarea id="ed-transcript" placeholder="The transcribed text will appear here. You can also edit it manually." data-i18n-placeholder="The transcribed text will appear here. You can also edit it manually."></textarea>
           <div class="transcript-meta" id="ed-trans-meta"></div>
         </div>
       </div>
 
       <div class="ed-col ed-right">
-        <div class="panel-head"><span class="panel-title">Detalles</span></div>
+        <div class="panel-head"><span class="panel-title" data-i18n="Details">Details</span></div>
         <div class="field">
-          <label for="ed-category">Categoría</label>
-          <input id="ed-category" list="cat-list" placeholder="p. ej. Postres" autocomplete="off">
+          <label for="ed-category" data-i18n="Category">Category</label>
+          <input id="ed-category" list="cat-list" placeholder="e.g. Desserts" data-i18n-placeholder="e.g. Desserts" autocomplete="off">
           <datalist id="cat-list"></datalist>
         </div>
         <div class="field">
-          <label for="ed-tags">Etiquetas <span class="faint">(separadas por coma)</span></label>
-          <input id="ed-tags" placeholder="sin gluten, rápido, 30 min…" autocomplete="off">
+          <label for="ed-tags"><span data-i18n="Tags">Tags</span> <span class="faint" data-i18n="(comma separated)">(comma separated)</span></label>
+          <input id="ed-tags" placeholder="gluten-free, quick, 30 min…" autocomplete="off">
         </div>
         <div class="field">
-          <label>Vídeo de origen</label>
+          <label data-i18n="Source video">Source video</label>
           <div class="source-path" id="ed-source"></div>
         </div>
 
         <div class="panel-head list-head">
           <span class="panel-title">
             <svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
-            Ingredientes
+            <span data-i18n="Ingredients">Ingredients</span>
           </span>
           <button id="ed-add-ing" class="btn btn-mini">
             <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-            Añadir
+            <span data-i18n="Add">Add</span>
           </button>
         </div>
         <div id="ed-ingredients" class="list-editor"></div>
@@ -267,27 +267,27 @@
         <div class="panel-head list-head">
           <span class="panel-title">
             <svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>
-            Pasos
+            <span data-i18n="Steps">Steps</span>
           </span>
           <button id="ed-add-step" class="btn btn-mini">
             <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-            Añadir
+            <span data-i18n="Add">Add</span>
           </button>
         </div>
         <div id="ed-steps" class="list-editor"></div>
 
-        <div class="panel-head"><span class="panel-title">Notas</span></div>
-        <textarea id="ed-notes" rows="3" placeholder="Trucos, variaciones, a quién se la dedicas…"></textarea>
+        <div class="panel-head"><span class="panel-title" data-i18n="Notes">Notes</span></div>
+        <textarea id="ed-notes" rows="3" placeholder="Tips, variations, who you'd dedicate this to…" data-i18n-placeholder="Tips, variations, who you'd dedicate this to…"></textarea>
       </div>
     </div>
 
     <footer class="editor-footer">
-      <span class="ed-hint">Ctrl+S para guardar · Esc para cerrar</span>
+      <span class="ed-hint" data-i18n="Ctrl+S to save · Esc to close">Ctrl+S to save · Esc to close</span>
       <div class="editor-footer-actions">
-        <button id="ed-cancel" class="btn btn-ghost">Cancelar</button>
+        <button id="ed-cancel" class="btn btn-ghost" data-i18n="Cancel">Cancel</button>
         <button id="ed-save" class="btn btn-primary">
           <svg viewBox="0 0 24 24"><path d="M5 3h11l5 5v13H5z"/><path d="M8 3v6h7V3M8 21v-7h8v7"/></svg>
-          Guardar receta
+          <span data-i18n="Save recipe">Save recipe</span>
         </button>
       </div>
     </footer>
@@ -298,6 +298,7 @@
 <div class="busy-overlay hidden" id="busy">
   <div class="spinner"></div>
 </div>
+<script src="/i18n.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

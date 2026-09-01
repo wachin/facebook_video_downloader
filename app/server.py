@@ -6,7 +6,7 @@ import re
 
 from flask import Flask, Response, abort, jsonify, request, send_file
 
-from . import config, database as db, fb, scanner
+from . import config, database as db, fb, i18n, scanner
 from .transcription import manager
 
 VIDEO_MIME = {
@@ -107,6 +107,20 @@ def create_app() -> Flask:
         if "watch_folder" in changed:
             scanner.scan()
         return jsonify(config.settings)
+
+    # ------------------------------------------------------------- traducciones
+
+    @app.get("/api/translations/<lang>")
+    def get_translations(lang: str):
+        """Return all translations for *lang* as a flat {source: translation} dict."""
+        mapping = i18n._get_map(lang)
+        # Build a flat dict: source → translation (for frontend consumption)
+        flat = {src: trans for (_, src), trans in mapping.items()}
+        return jsonify({"lang": lang, "translations": flat})
+
+    @app.get("/api/languages")
+    def get_languages():
+        return jsonify(i18n.available_languages())
 
     # ------------------------------------------------------------- vídeos
 

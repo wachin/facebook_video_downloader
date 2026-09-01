@@ -13,10 +13,10 @@ function esc(value) {
 }
 
 const STATUS_LABEL = {
-  pending: "Pendiente",
-  transcribing: "Transcribiendo",
-  done: "Transcrita",
-  error: "Error",
+  pending: () => I18N.t("Pending"),
+  transcribing: () => I18N.t("Transcribing"),
+  done: () => I18N.t("Transcribed"),
+  error: () => I18N.t("Error"),
 };
 
 function fmtDuration(seconds) {
@@ -140,8 +140,11 @@ async function boot() {
   try {
     state.settings = await api("/api/settings");
   } catch (_) {
-    toast("No se pudo conectar con el servidor local.", "err");
+    toast(I18N.t("Could not connect to the local server."), "err");
   }
+  // Load translations for the configured language
+  const lang = state.settings?.ui_language || state.settings?.language || "en";
+  await I18N.load(lang === "auto" ? "en" : lang);
   renderSettings();
   await refreshAll();
   const tab = new URLSearchParams(location.search).get("tab");
@@ -223,10 +226,10 @@ function renderFilterRow() {
     .map((c) => chips(esc(c.name), c.count, c.name, "category"))
     .join("");
   $("#filter-row").innerHTML = `
-    ${chips("Todas", s.total, "all", "statusFilter")}
-    ${chips("Transcritas", s.done, "done", "statusFilter")}
-    ${chips("Pendientes", (s.pending || 0) + (s.transcribing || 0), "pending", "statusFilter")}
-    ${chips("Errores", s.error, "error", "statusFilter")}
+    ${chips(I18N.t("All"), s.total, "all", "statusFilter")}
+    ${chips(I18N.t("Transcribed"), s.done, "done", "statusFilter")}
+    ${chips(I18N.t("Pending"), (s.pending || 0) + (s.transcribing || 0), "pending", "statusFilter")}
+    ${chips(I18N.t("Errors"), s.error, "error", "statusFilter")}
     <span class="chip-sep"></span>
     <button class="chip ${state.category === "" ? "active" : ""}" data-category="">Todas las categorías</button>
     ${cats}`;
@@ -250,7 +253,7 @@ function cardHTML(r) {
       ${dur ? `<span class="card-duration">${dur}</span>` : ""}
     </div>
     <div class="card-actions">
-      <button class="card-act" data-act="transcribe" title="Transcribir vídeo"
+      <button class="card-act" data-act="transcribe" title="${I18N.t('Transcribe video')}"
         ${r.status === "transcribing" ? "disabled" : ""}>
         <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       </button>
@@ -309,18 +312,18 @@ function queueRowHTML(r) {
     : '<div class="no-thumb">🍳</div>';
   const actions = isBusy
     ? `<button class="btn btn-mini" data-act="cancel"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Cancelar</button>`
-    : `<button class="btn btn-mini" data-act="transcribe" ${isError ? 'title="Reintentar"' : ""}><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>${isError ? "Reintentar" : "Transcribir"}</button>`;
+    : `<button class="btn btn-mini" data-act="transcribe" ${isError ? `title="${I18N.t('Retry')}"` : ""}><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>${isError ? I18N.t('Retry') : I18N.t('Transcribe')}</button>`;
   return `
   <div class="queue-row ${isBusy ? "transcribing" : ""}" data-id="${r.id}">
     <div class="queue-thumb">${thumb}</div>
     <div class="queue-info">
       <div class="queue-name">${esc(r.title || r.file_name)}</div>
       <div class="queue-sub">${esc(r.file_name)} · ${fmtDuration(r.duration) || "duración desconocida"}</div>
-      ${isError ? `<div class="queue-err">${esc(r.error || "Error de transcripción")}</div>` : ""}
+      ${isError ? `<div class="queue-err">${esc(r.error || I18N.t('Transcription error'))}</div>` : ""}
       ${isBusy ? `
         <div class="queue-progress"><i style="width:${Math.max(3, pct)}%"></i></div>` : ""}
     </div>
-    <div class="queue-pct">${isBusy ? `${pct}%` : STATUS_LABEL[r.status]}</div>
+    <div class="queue-pct">${isBusy ? `${pct}%` : STATUS_LABEL[r.status]()}</div>
     <div class="queue-actions">
       ${actions}
       <button class="btn btn-mini" data-act="open"><svg viewBox="0 0 24 24"><path d="M9 5h10v10M5 19L19 5"/></svg>Abrir</button>
@@ -549,9 +552,9 @@ function updateFolderHint() {
   if (!hint) return;
   const folder = ($("#set-folder") || {}).value || state.settings?.watch_folder;
   if (native()) {
-    hint.textContent = "Pulsa «Examinar…» para elegir la carpeta con el diálogo nativo.";
+    hint.textContent = I18N.t("Press «Browse» to choose the video folder with the native dialog.");
   } else {
-    hint.innerHTML = "Modo navegador: escribe la ruta a mano (p. ej. <code>/home/usuario/Videos/Recetas</code>).";
+    hint.innerHTML = I18N.t("Browser mode: type the path manually (e.g. /home/user/Videos/Recipes).");
   }
   void folder;
 }
@@ -569,10 +572,10 @@ async function saveSettings() {
       method: "POST",
       body: JSON.stringify(data),
     });
-    toast("Ajustes guardados.");
+    toast(I18N.t("Settings saved."));
     await refreshAll();
   } catch (e) {
-    toast(`No se pudieron guardar: ${e.message}`, "err");
+    toast(`${I18N.t("Could not save: ")}${e.message}`, "err");
   }
 }
 
@@ -584,7 +587,7 @@ async function pickFolder() {
       updateFolderHint();
     }
   } catch (_) {
-    toast("El selector de carpetas no está disponible; escribe la ruta a mano.", "err");
+    toast(I18N.t("The folder picker is not available; type the path manually."), "err");
   }
 }
 
@@ -592,17 +595,17 @@ async function wipeLibrary() {
   const btn = $("#btn-wipe");
   if (btn.dataset.arm !== "1") {
     btn.dataset.arm = "1";
-    btn.textContent = "¿Seguro? Pulsa otra vez para vaciar";
+    btn.textContent = I18N.t("Are you sure? Click again to clear");
     setTimeout(() => {
       btn.dataset.arm = "";
-      btn.textContent = "Vaciar biblioteca";
+      btn.textContent = I18N.t("Clear library");
     }, 4000);
     return;
   }
   try {
     await Promise.all(state.recipes.map((r) =>
       api(`/api/recipes/${r.id}`, { method: "DELETE" })));
-    toast("Biblioteca vaciada.");
+    toast(I18N.t("Library cleared."));
     await refreshAll();
   } catch (e) {
     toast(`Error: ${e.message}`, "err");
@@ -630,12 +633,12 @@ async function loadCaptured() {
   if (!list) return;
   list.innerHTML = state.fbCaptured.map(fbItemHTML).join("");
   const n = state.fbCaptured.length;
-  $("#fb-count").textContent = n ? `${n} vídeo${n === 1 ? "" : "s"} capturado${n === 1 ? "" : "s"}` : "";
+  $("#fb-count").textContent = n ? `${n} ${n === 1 ? I18N.t('video sent') : I18N.t('videos sent')}` : "";
   $("#fb-download").disabled = n === 0;
 }
 
 function fbItemHTML(item) {
-  const kindLabel = item.kind === "video" ? "Vídeo directo" : "Enlace";
+  const kindLabel = item.kind === "video" ? I18N.t('Direct video') : I18N.t('Link');
   return `
   <div class="fb-item" data-id="${item.id}">
     <label class="fb-check"><input type="checkbox" value="${item.id}" checked></label>
@@ -667,24 +670,24 @@ async function openFacebook() {
   if (native()) {
     try {
       await window.pywebview.api.open_facebook();
-      toast("Abriendo Facebook en una ventana nueva. Facebook Collections Downloader se queda abierto para ver el progreso.");
+      toast(I18N.t("Opening Facebook in a new window. Facebook Collections Downloader stays open to show progress."));
     } catch (_) {
       window.open("https://www.facebook.com/saved/", "_blank");
     }
   } else {
     window.open("https://www.facebook.com/saved/", "_blank");
-    toast("Facebook abierto en tu navegador. Captura con el bookmarklet del paso 2.");
+    toast(I18N.t("Facebook opened in your browser. Capture with the bookmarklet from step 2."));
   }
 }
 
 async function captureNow() {
   if (!native()) {
-    toast("En modo navegador usa el bookmarklet del paso 2.", "ok");
+    toast(I18N.t("In browser mode use the bookmarklet from step 2."), "ok");
     return;
   }
   const ok = await window.pywebview.api.capture_now();
-  if (ok) toast("Captura lanzada. Si estás en una página de Facebook, mira abajo a la derecha.");
-  else toast("No se pudo capturar. Abre primero Facebook con el botón del paso 1.", "err");
+  if (ok) toast(I18N.t("Capture launched. If you're on a Facebook page, look at the bottom-right."));
+  else toast(I18N.t("Could not capture. Open Facebook first with the step 1 button."), "err");
 }
 
 function fbBookmarkletSource() {
@@ -712,7 +715,7 @@ function initBookmarklet() {
 async function downloadSelected() {
   const ids = $$("#fb-list input[type=checkbox]:checked").map((el) => +el.value);
   if (!ids.length) {
-    toast("Marca al menos un vídeo para descargar.", "err");
+    toast(I18N.t("Select at least one video to download."), "err");
     return;
   }
   try {
@@ -743,7 +746,7 @@ function pollFbStatus() {
         state.fbDoneNotified = true;
         refreshAll();
         loadCaptured().catch(() => {});
-        toast("Descarga terminada. Los vídeos están en tu Biblioteca.");
+        toast(I18N.t("Download finished. Videos are in your Library."));
       }
     })
     .catch(() => { /* servidor aún arrancando */ });
@@ -929,21 +932,21 @@ async function saveEditor(close = false) {
       body: JSON.stringify(data),
     });
     state.editorDirty = false;
-    toast("Receta guardada.");
+    toast(I18N.t("Recipe saved."));
     state.recipes = state.recipes.map((r) => (r.id === saved.id ? saved : r));
     if (state.view === "library") renderLibrary();
     if (state.view === "queue") renderQueue();
     renderSidebarStats();
     if (close) closeEditor();
   } catch (e) {
-    toast(`No se pudo guardar: ${e.message}`, "err");
+    toast(`${I18N.t("Could not save: ")}${e.message}`, "err");
   }
 }
 
 async function startTranscription(id) {
   try {
     await api(`/api/recipes/${id}/transcribe`, { method: "POST" });
-    toast("Transcripción iniciada.");
+    toast(I18N.t("Transcription started."));
   } catch (e) {
     toast(e.message, "err");
   }
@@ -958,11 +961,11 @@ function updateEditorStatus(r) {
     el.className = "trans-status busy";
     btn.disabled = true;
   } else if (r.status === "done") {
-    el.textContent = "✓ Transcrita";
+    el.textContent = `✓ ${I18N.t('Transcribed')}`;
     el.className = "trans-status ok";
     btn.disabled = false;
   } else if (r.status === "error") {
-    el.textContent = `⚠ ${r.error || "Error"}`;
+    el.textContent = `⚠ ${r.error || I18N.t('Error')}`;
     el.className = "trans-status";
     btn.disabled = false;
   } else {
@@ -1006,10 +1009,10 @@ async function tick() {
         const r = state.recipes.find((x) => x.id === state.editorId);
         if (r) {
           fillEditor(r);
-          toast("Transcripción completada.");
+          toast(I18N.t("Transcription completed."));
         }
       } else {
-        toast("Transcripción completada.");
+        toast(I18N.t("Transcription completed."));
       }
     }
 
@@ -1090,8 +1093,8 @@ function bindStatic() {
   $("#btn-rescan").addEventListener("click", async () => {
     const res = await api("/api/rescan", { method: "POST" });
     toast(res.new > 0
-      ? `${res.new} vídeo${res.new === 1 ? "" : "s"} nuevo${res.new === 1 ? "" : "s"} encontrado${res.new === 1 ? "" : "s"}.`
-      : "Carpeta escaneada: sin vídeos nuevos.");
+      ? `${res.new} ${I18N.t(' new video(s) found.')}`
+      : I18N.t('No new videos found.'));
     await refreshAll();
   });
   $("#btn-import").addEventListener("click", () => $("#file-input").click());
@@ -1115,7 +1118,7 @@ function bindStatic() {
   dz.addEventListener("drop", (e) => {
     const files = [...(e.dataTransfer?.files || [])].filter((f) => f.type.startsWith("video/"));
     if (files.length) uploadFiles(files);
-    else toast("Solo se aceptan archivos de vídeo.", "err");
+    else    toast(I18N.t("Only video files are accepted."), "err");
   });
 
   // Cola
@@ -1259,8 +1262,8 @@ function uploadFiles(files) {
   api("/api/import", { method: "POST", body: form })
     .then((res) => {
       toast(res.saved.length
-        ? `${res.saved.length} vídeo${res.saved.length === 1 ? "" : "s"} importado${res.saved.length === 1 ? "" : "s"}.`
-        : "No se importó ningún vídeo.", res.saved.length ? "ok" : "err");
+        ? `${I18N.t('Drop complete. ')}${res.saved.length} ${I18N.t(' video(s) imported.')}`
+        : I18N.t('Only video files are accepted.'), res.saved.length ? "ok" : "err");
       return refreshAll();
     })
     .catch((e) => toast(e.message, "err"))
@@ -1273,7 +1276,7 @@ function openWatchFolder() {
   if (native()) {
     window.pywebview.api.reveal_in_file_manager(folder);
   } else {
-    toast(`Carpeta: ${folder}`, "ok");
+    toast(`${I18N.t('Video folder')}: ${folder}`, "ok");
   }
 }
 
