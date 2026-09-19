@@ -16,6 +16,25 @@ Un programa de escritorio para tu colección de **vídeos  de Facebook**:
 
 ---
 
+## Qué es este programa, cómo funciona?
+
+• Es una aplicación híbrida de escritorio, no una página web pública.
+
+  La interfaz está hecha con tecnologías web: HTML, CSS y JavaScript. Pero se ejecuta
+  localmente en tu computadora con Python:
+
+  - Python/Flask administra vídeos, base de datos, descargas y transcripciones.
+  - La interfaz se sirve desde 127.0.0.1 (solo tu equipo).
+  - Normalmente se abre dentro de una ventana nativa mediante pywebview, como una aplicación
+    de escritorio.
+  - No sube tus vídeos, ni transcripciones a un servidor externo; los datos se
+    guardan localmente.
+
+  En resumen: es un programa de escritorio con interfaz web local para descargar, organizar
+  y transcribir vídeos guardados de Facebook.
+  
+---
+
 ## 1. Cómo conseguir los vídeos de Facebook
 
 Facebook Collections Downloader incluye un **importador de Facebook** integrado: captura los

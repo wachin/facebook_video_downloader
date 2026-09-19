@@ -12,7 +12,26 @@ A desktop program for your video collection from Facebook:
 > a terminal, `pip`, or `venv`, that's okay: follow the steps in order and
 > everything will work. Unfamiliar terms are explained.
 
-> 📖 **[README en Español (Versión en español)](README_ES.md)**
+> 📖 **[README en Español (Versión en español)](README_ES.md)**  
+  
+---
+
+## What is this program, and how does it work?
+
+• It is a hybrid desktop application, not a public website. 
+
+The interface is built using web technologies: HTML, CSS, and JavaScript. However, it runs
+locally on your computer using Python:
+
+- Python/Flask manages videos, the database, downloads, and transcriptions. 
+- The interface is served from 127.0.0.1 (your machine only). 
+- It typically opens in a native window via pywebview, functioning like a desktop
+application. 
+- It does not upload your videos or transcriptions to an external server; data is
+stored locally. 
+
+In short: it is a desktop program with a local web interface for downloading, organizing,
+and transcribing saved Facebook videos.
 
 ---
 
