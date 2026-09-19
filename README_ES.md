@@ -119,8 +119,9 @@ transcripción, etc.
 - **`venv`** (entorno virtual) es una **caja aislada** dentro de tu proyecto
   donde se guardan esos ingredientes, sin tocar el resto del sistema.
 
-¿Por qué hace falta esta caja? Porque casi todos los ingredientes de Mi
-Recetario existen como paquetes de tu distribución de Linux... **excepto uno**:
+¿Por qué hace falta esta caja? Porque casi todos los ingredientes de Facebook
+Collections Downloader existen como paquetes de tu distribución de Linux...
+**excepto uno**:
 el motor de transcripción (`faster-whisper`). Ese solo se consigue con `pip`,
 y lo correcto es instalarlo dentro de su caja (`venv`), no en el sistema.
 Así no rompes nada, y si algo falla, borras la caja y la creas de nuevo.
@@ -140,7 +141,7 @@ de cada uno.
 instalaste el proyecto en otro sitio.)
 
 ```bash
-cd ~/Dev3/recipe_book_downloader
+cd ~/Dev3/facebook_video_downloader
 ```
 
 **Paso 2 — Crea el entorno virtual (la "caja").** Esto solo se hace **una
@@ -190,7 +191,7 @@ source venv/bin/activate
 Verás `(venv)` al principio de la línea del terminal:
 
 ```
-(venv) usuario@equipo:~/Dev3/recipe_book_downloader$
+(venv) usuario@equipo:~/Dev3/facebook_video_downloader$
 ```
 
 Mientras esté ese `(venv)`, los comandos `python` y `pip` usan el entorno
@@ -268,7 +269,7 @@ Si tu ordenador es modesto, puedes elegir el modelo *tiny* o *base* en
 Cuando haya una versión nueva:
 
 ```bash
-cd ~/Dev3/recipe_book_downloader
+cd ~/Dev3/facebook_video_downloader
 git pull
 source venv/bin/activate
 pip install -r requirements.txt

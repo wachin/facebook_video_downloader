@@ -141,7 +141,7 @@ each one.
 installed the project elsewhere.)
 
 ```bash
-cd ~/Dev3/recipe_book_downloader
+cd ~/Dev3/facebook_video_downloader
 ```
 
 **Step 2 — Create the virtual environment (the "box").** This is done **only
@@ -191,7 +191,7 @@ source venv/bin/activate
 You'll see `(venv)` at the beginning of the terminal line:
 
 ```
-(venv) user@machine:~/Dev3/recipe_book_downloader$
+(venv) user@machine:~/Dev3/facebook_video_downloader$
 ```
 
 As long as `(venv)` is there, `python` and `pip` commands use the project
@@ -269,7 +269,7 @@ computer is modest, you can choose the *tiny* or *base* model in
 When there's a new version:
 
 ```bash
-cd ~/Dev3/recipe_book_downloader
+cd ~/Dev3/facebook_video_downloader
 git pull
 source venv/bin/activate
 pip install -r requirements.txt
