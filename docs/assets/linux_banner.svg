@@ -1,0 +1,6 @@
+<svg width="800" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="200" fill="#1a1a2e"/>
+  <text x="20" y="80" font-family="DejaVuSans" font-size="32" fill="#00ff00">LINUX - Facebook Collections Downloader</text>
+  <text x="20" y="120" font-family="DejaVuSans" font-size="20" fill="#aaaaff">XDG folders: ~/.local/share, ~/.config, ~/.cache</text>
+  <text x="20" y="150" font-family="DejaVuSans" font-size="20" fill="#aaaaff">Videos: XDG_VIDEOS_DIR + localized names (Vídeos, Vidéos, Video)</text>
+</svg>

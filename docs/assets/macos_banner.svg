@@ -1,0 +1,6 @@
+<svg width="800" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="200" fill="#0d0d2a"/>
+  <text x="20" y="80" font-family="DejaVuSans" font-size="32" fill="#ffcc00">macOS - Facebook Collections Downloader</text>
+  <text x="20" y="120" font-family="DejaVuSans" font-size="20" fill="#aaaaff">Folders: ~/Library/Application Support, ~/Library/Caches</text>
+  <text x="20" y="150" font-family="DejaVuSans" font-size="20" fill="#aaaaff">Videos: ~/Movies, ~/Videos (also localized)</text>
+</svg>
