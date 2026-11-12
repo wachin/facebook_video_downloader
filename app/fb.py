@@ -15,6 +15,7 @@ import pathlib
 import re
 import shutil
 import subprocess
+import sys
 import threading
 import time
 
@@ -300,15 +301,37 @@ def build_capture_script(server_url: str) -> str:
 
 
 def find_ytdlp() -> str | None:
-    """Localiza el binario de yt-dlp (instalado por apt, pipx o pip)."""
-    found = shutil.which("yt-dlp")
+    """Localiza el binario de yt-dlp (PATH, gestor de paquetes o pip)."""
+    name = "yt-dlp.exe" if sys.platform.startswith("win") else "yt-dlp"
+    found = shutil.which(name) or shutil.which("yt-dlp")
     if found:
         return found
-    for candidate in (
-        pathlib.Path.home() / ".local" / "bin" / "yt-dlp",
-        pathlib.Path("/usr/local/bin/yt-dlp"),
-        pathlib.Path("/usr/bin/yt-dlp"),
-    ):
+
+    home = pathlib.Path.home()
+    if sys.platform.startswith("win"):
+        appdata = pathlib.Path(os.environ.get("APPDATA") or home / "AppData" / "Roaming")
+        local = pathlib.Path(os.environ.get("LOCALAPPDATA") or home / "AppData" / "Local")
+        candidates = [
+            local / "Programs" / "yt-dlp" / name,
+            local / "Microsoft" / "WinGet" / "Links" / name,
+        ]
+        # pip --user: %APPDATA%\Python\Python3XX\Scripts\yt-dlp.exe
+        candidates += sorted(
+            appdata.glob(f"Python/Python3*/Scripts/{name}"), reverse=True
+        )
+    elif sys.platform == "darwin":
+        candidates = [
+            home / ".local" / "bin" / name,
+            pathlib.Path("/opt/homebrew/bin/yt-dlp"),
+            pathlib.Path("/usr/local/bin/yt-dlp"),
+        ]
+    else:
+        candidates = [
+            home / ".local" / "bin" / name,
+            pathlib.Path("/usr/local/bin/yt-dlp"),
+            pathlib.Path("/usr/bin/yt-dlp"),
+        ]
+    for candidate in candidates:
         if candidate.exists():
             return str(candidate)
     return None
@@ -456,7 +479,7 @@ class FbDownloader:
         # Cookies de la sesión de Facebook: necesarias para descargar los
         # vídeos de colecciones privadas (guardados). Se exportan desde el
         # webview en cada captura (ver Api.capture_urls en app/window.py).
-        cookies_file = config.DATA_DIR / "cookies" / "fb_cookies.txt"
+        cookies_file = config.COOKIES_DIR / "fb_cookies.txt"
         if cookies_file.exists():
             cmd += ["--cookies", str(cookies_file)]
         # yt-dlp es Python: con salida a tubería almacena en búfer y el

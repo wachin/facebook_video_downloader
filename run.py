@@ -11,7 +11,7 @@ autofirmado). Es necesario: la página de Facebook es HTTPS y WebKitGTK
 bloquea los *fetch* desde HTTPS hacia http://127.0.0.1 (contenido mixto), así
 que la captura de vídeos fallaría. Con HTTPS local el envío desde Facebook a
 la app ya no es contenido mixto. El certificado se genera una vez con openssl
-y se guarda en data/cert/.
+y se guarda en la carpeta de caché del usuario (XDG_CACHE_HOME en Linux).
 """
 import argparse
 import pathlib
@@ -88,9 +88,9 @@ def main() -> None:
     # permitido, y un certificado autofirmado daría avisos de seguridad.
     cert = None
     if not args.web and not args.serve:
-        from app.config import DATA_DIR
+        from app.config import CACHE_DIR
 
-        cert = ensure_cert(DATA_DIR)
+        cert = ensure_cert(CACHE_DIR)
 
     if cert:
         import ssl
@@ -142,7 +142,7 @@ def main() -> None:
     # private_mode=False: pywebview conserva cookies y datos de sitios (la
     # sesión de Facebook sobrevive al cerrar la app). Sin esto, el contexto de
     # WebKit es efímero y pide credenciales en cada arranque. Los datos se
-    # guardan en data/webview/ (carpeta del proyecto).
+    # guardan en la carpeta de datos del usuario (XDG_DATA_HOME en Linux).
     # IGNORE_SSL_ERRORS: la app se sirve por HTTPS con certificado autofirmado;
     # sin esto WebKit mostraría un aviso de seguridad en cada arranque.
     webview.settings["IGNORE_SSL_ERRORS"] = True

@@ -19,6 +19,7 @@ HTTP. Es la única vía que el Content-Security-Policy de Facebook no bloquea
 import importlib
 import os
 import subprocess
+import sys
 import threading
 import time
 import webbrowser
@@ -65,7 +66,12 @@ class Api:
             if not path or not os.path.exists(path):
                 return False
             target = os.path.dirname(path) if os.path.isfile(path) else path
-            subprocess.Popen(["xdg-open", target])
+            if sys.platform.startswith("win"):
+                subprocess.Popen(["explorer", os.path.normpath(target)])
+            elif sys.platform == "darwin":
+                subprocess.Popen(["open", target])
+            else:
+                subprocess.Popen(["xdg-open", target])
             return True
         except Exception:
             return False
@@ -169,7 +175,7 @@ class Api:
             if win is None or win.events.closed.is_set():
                 win = webview.windows[0]
             cookies = win.get_cookies()
-            path = config.DATA_DIR / "cookies" / "fb_cookies.txt"
+            path = config.COOKIES_DIR / "fb_cookies.txt"
             written = fb.write_cookies_netscape(cookies, path)
             print(f"[Facebook] cookies de sesión exportadas ({written})", flush=True)
         except Exception as exc:  # noqa: BLE001

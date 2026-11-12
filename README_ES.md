@@ -47,7 +47,7 @@ necesidad de herramientas externas.
    **ventana nueva** con Facebook y Facebook Collections Downloader se queda abierto en la suya.
 2. Inicia sesión en Facebook como siempre, con tu verificación en dos pasos si
    la tienes. **Solo la primera vez**: la sesión se recuerda entre ejecuciones
-   (la app guarda las cookies en `data/webview/`).
+   (la app guarda las cookies en su carpeta de datos de usuario, en `webview/`).
 3. Entra a una colección de tus guardados. Abajo a la derecha verás un panel
    con tres botones:
    - **«⬇️ Descargar toda la colección»** — recorre toda la colección
@@ -73,12 +73,12 @@ sudo apt install yt-dlp
 > 🔑 **Colecciones privadas**: tus listas guardadas son privadas, pero el botón
 > las lee igualmente porque corre dentro de tu sesión iniciada. Para
 > **descargar** esos vídeos, al capturar la app exporta las cookies de tu
-> sesión a `data/cookies/fb_cookies.txt` y se las pasa a `yt-dlp`, que así
+> sesión a `cookies/fb_cookies.txt` (dentro de su carpeta de datos) y se las pasa a `yt-dlp`, que así
 > descarga con tu sesión (no con el navegador). Si caducan, vuelve a abrir
 > Facebook desde la app y captura de nuevo: se refrescan solas.
 
 > 🔒 **HTTPS local**: la app se sirve por HTTPS con un certificado autofirmado
-> (se genera solo con `openssl` en `data/cert/`). Es necesario porque Facebook
+> (se genera solo con `openssl` en la carpeta de caché de la app). Es necesario porque Facebook
 > es HTTPS y WebKitGTK bloquea los envíos desde una página segura hacia
 > `http://127.0.0.1` (contenido mixto). Todo sigue siendo local: el servidor
 > solo escucha en 127.0.0.1.
@@ -96,8 +96,9 @@ Si prefieres el método 100 % manual, también puedes:
 
 1. En Facebook, abre el vídeo y pulsa **clic derecho → «Guardar vídeo como…»**
    (o usa un descargador individual como `yt-dlp` pegando la URL).
-2. Deja los archivos en la carpeta de vídeos de la app (por defecto
-   `~/Videos/Recetas`).
+2. Deja los archivos en la carpeta de vídeos de la app: por defecto, `Recetas`
+   dentro de la carpeta de vídeos del sistema (p. ej. `~/Vídeos/Recetas` en un
+   sistema en español, `~/Videos/Recetas` en uno en inglés).
 3. Abre Facebook Collections Downloader, pulsa **Escanear** y el vídeo aparece en la Biblioteca.
 
 En ese caso, la pestaña Facebook te ofrece también un *bookmarklet* para
@@ -147,7 +148,8 @@ Así no rompes nada, y si algo falla, borras la caja y la creas de nuevo.
 
 > La carpeta del entorno virtual se llama `venv/` y vive dentro de la carpeta
 > del proyecto. Se puede borrar y recrear cuando quieras: los datos de tus
-> recetas están en otra carpeta (`data/`) y no se pierden.
+> recetas están en la carpeta de datos de tu usuario, fuera del proyecto, y no
+> se pierden.
 
 ---
 
@@ -306,7 +308,7 @@ ingredientes si hace falta.)
 | `python3: command not found`  | Instala Python: `sudo apt install python3` |
 | `ensurepip is not available` o falta `venv` | Instala el módulo: `sudo apt install python3-venv` y repite el Paso 2 |
 | `error: externally-managed-environment` | Es normal en Debian/MX: significa que pip no debe tocar el sistema. **Activa el venv** (Paso 3) y repite el Paso 4 |
-| El venv está "roto" o algo raro ocurre | Bórralo y créalo de nuevo: `rm -rf venv` y repite los pasos 2 a 4. Tus recetas no se pierden (están en `data/`) |
+| El venv está "roto" o algo raro ocurre | Bórralo y créalo de nuevo: `rm -rf venv` y repite los pasos 2 a 4. Tus recetas no se pierden (están en la carpeta de datos de tu usuario) |
 | La transcripción tarda mucho | Elige un modelo más pequeño en **Ajustes** (tiny o base) |
 | La descarga del modelo falla a mitad | Vuelve a intentarlo: reanuda donde se quedó. Si falla siempre, revisa tu conexión o proxy |
 | Los vídeos privados de Facebook no se descargan (error de autenticación) | Las cookies caducaron. Abre Facebook desde la app y captura de nuevo: la app las refresca automáticamente |
@@ -319,7 +321,6 @@ ingredientes si hace falta.)
 ```
 app/            Backend (Flask, SQLite, Whisper, escáner de vídeos)
 web/            Interfaz (HTML/CSS/JS, sin frameworks externos)
-data/           Base de datos, miniaturas y ajustes (se crea al primer uso)
 venv/           Entorno virtual (NO se toca a mano; se crea con el Paso 2)
 run.py          Punto de entrada
 ```
@@ -361,7 +362,7 @@ cosa, por qué se eligió y dónde está en el código.
 ### 11.2 Persistencia: SQLite (sin servidor, sin ORM)
 
 - **SQLite** es una base de datos **embebida**: no hay un proceso de base de
-  datos aparte, todo vive en un archivo (`data/recipes.db`). Perfecta para una
+  datos aparte, todo vive en un archivo (`recipes.db`, en la carpeta de datos). Perfecta para una
   app local de un solo usuario.
 - Se usa el módulo estándar `sqlite3`, con `check_same_thread=False` porque
   varios hilos acceden a la misma conexión, y un `threading.Lock` protege cada
@@ -409,7 +410,7 @@ cosa, por qué se eligió y dónde está en el código.
   se registran para ejecutarse en `document-start` de *cada* página que carga
   la ventana, con un guard que solo actúa en `facebook.com`.
 - Con `private_mode=False` y `storage_path` la sesión (cookies) sobrevive al
-  cierre de la app; se guarda en `data/webview/`.
+  cierre de la app; se guarda en `webview/`, dentro de la carpeta de datos.
 - Detalle de concurrencia curioso: WebKitGTK **solo es seguro desde el hilo
   principal**, así que las operaciones que vienen de hilos Python se programan
   con `GLib.idle_add` (ver `_navigate_later` en `app/window.py`).
@@ -457,7 +458,7 @@ clase parecen teoría:
 - **Contenido mixto (mixed content):** una página HTTPS no puede hacer
   peticiones a `http://127.0.0.1`. Como Facebook es HTTPS, la app se sirve a sí
   misma por **HTTPS local con certificado autofirmado** (generado con
-  `openssl` en `data/cert/`). Un certificado autofirmado es válido para
+  `openssl` en la carpeta de caché). Un certificado autofirmado es válido para
   localhost, pero los navegadores lo rechazarían en cualquier otro sitio.
 - **CSP (Content-Security-Policy):** Facebook prohíbe a sus páginas hacer
   `fetch` hacia direcciones locales. Por eso el botón flotante envía los vídeos
@@ -474,32 +475,49 @@ clase parecen teoría:
 ### 11.9 Dónde se guardan los archivos descargados (mapa de rutas)
 
 Una duda muy típica: "¿y esto dónde se ha descargado?". Aquí tienes el mapa
-completo. Distingue dos sitios: **dentro del proyecto** (carpeta `data/`, que
-se crea al primer uso) y **fuera, en tu carpeta de usuario** (cachés y vídeos).
+completo. Distingue dos sitios: **las carpetas estándar de tu usuario** (datos,
+ajustes y caché de la app) y **tu carpeta de vídeos** (los vídeos descargados).
+
+Las carpetas de la app siguen la convención de cada sistema:
+
+- **Linux (XDG):** datos en `$XDG_DATA_HOME/facebook-collections-downloader`
+  (por defecto `~/.local/share/...`), ajustes en
+  `$XDG_CONFIG_HOME/facebook-collections-downloader` (por defecto `~/.config/...`)
+  y caché en `$XDG_CACHE_HOME/facebook-collections-downloader`
+  (por defecto `~/.cache/...`).
+- **Windows:** datos y caché en `%LOCALAPPDATA%\Facebook Collections Downloader`;
+  ajustes en `%APPDATA%\Facebook Collections Downloader`.
+- **macOS:** datos y ajustes en `~/Library/Application Support/Facebook Collections
+  Downloader`; caché en `~/Library/Caches/Facebook Collections Downloader`.
+
+En las rutas de la tabla, `<datos>`, `<ajustes>` y `<caché>` son esas carpetas.
+Si vienes de una versión anterior, la carpeta `data/` del proyecto se migra
+automáticamente la primera vez que arranques.
 
 | Ruta | Qué contiene | ¿Cómo llega ahí? |
 |---|---|---|
-| `data/recipes.db` | Base de datos SQLite: recetas, transcripciones, estado | La crea y la escribe la app |
-| `data/thumbs/` | Miniaturas JPEG de cada vídeo (`thumb_<id>.jpg`) | Las genera la app con PyAV/Pillow |
-| `data/settings.json` | Ajustes: carpeta de vídeos, modelo, idioma, hilos, VAD | Los guardas tú desde **Ajustes** |
-| `data/webview/` | Perfil del navegador embebido: cookies y sesión de Facebook | Lo persiste pywebview (`private_mode=False`); si lo borras, tendrás que iniciar sesión otra vez |
-| `data/cookies/fb_cookies.txt` | Cookies de tu sesión de Facebook en formato Netscape, para `yt-dlp` | Se exportan desde el webview en cada captura (colecciones privadas) |
-| `data/cert/` | Certificado HTTPS autofirmado (`cert.pem`, `key.pem`) | Lo genera `openssl` la primera vez (`run.py`) |
+| `<datos>/recipes.db` | Base de datos SQLite: recetas, transcripciones, estado | La crea y la escribe la app |
+| `<datos>/thumbs/` | Miniaturas JPEG de cada vídeo (`thumb_<id>.jpg`) | Las genera la app con PyAV/Pillow |
+| `<ajustes>/settings.json` | Ajustes: carpeta de vídeos, modelo, idioma, hilos, VAD | Los guardas tú desde **Ajustes** |
+| `<datos>/webview/` | Perfil del navegador embebido: cookies y sesión de Facebook | Lo persiste pywebview (`private_mode=False`); si lo borras, tendrás que iniciar sesión otra vez |
+| `<datos>/cookies/fb_cookies.txt` | Cookies de tu sesión de Facebook en formato Netscape, para `yt-dlp` | Se exportan desde el webview en cada captura (colecciones privadas) |
+| `<caché>/cert/` | Certificado HTTPS autofirmado (`cert.pem`, `key.pem`) | Lo genera `openssl` la primera vez (`run.py`) |
 | `venv/` | Todos los paquetes de Python instalados con pip (Flask, faster-whisper, pywebview…) | Se crea con `python3 -m venv venv` y `pip install -r requirements.txt` |
 | `venv/lib/python3.*/site-packages/faster_whisper/assets/silero_vad.onnx` | Modelo **VAD de Silero** (detección de voz) | Viene **incluido en el paquete pip** de faster-whisper; no se descarga aparte |
 | `~/.cache/huggingface/hub/models--Systran--faster-whisper-small/` | Modelo de Whisper **small** (~460 MB) | Se descarga de **Hugging Face** la primera vez que transcribes. El nombre cambia con el modelo elegido (`...faster-whisper-tiny/`, `...-base/`, `...-medium/`) |
-| `~/Videos/Recetas` | **Los vídeos descargados** de Facebook con yt-dlp | Carpeta vigilada; se puede cambiar en **Ajustes**. Ahí es donde la app busca vídeos nuevos |
+| `<vídeos del sistema>/Recetas` | **Los vídeos descargados** de Facebook con yt-dlp | Carpeta vigilada; se puede cambiar en **Ajustes**. Por defecto es `Recetas` dentro de la carpeta de vídeos del sistema (p. ej. `~/Vídeos/Recetas`) |
 
 **Qué se puede borrar sin miedo y qué no:**
 
-- `data/` es **tu información** (recetas, transcripciones, sesión de Facebook):
-  no se toca si reinstalas. Es lo único que conviene **respaldar**.
+- La carpeta `<datos>` es **tu información** (recetas, transcripciones, sesión
+  de Facebook): no se toca si reinstalas. Es lo único que conviene **respaldar**.
 - `venv/` se puede borrar y recrear cuando quieras (pasos 2-4 de la
-  instalación): los datos no están ahí. Lo mismo vale para `data/cert/` (se
-  regenera solo) y `data/cookies/` (se refresca en la siguiente captura).
+  instalación): los datos no están ahí. Lo mismo vale para `<caché>/cert/` (se
+  regenera solo) y `<datos>/cookies/` (se refresca en la siguiente captura).
 - `~/.cache/huggingface/` es solo caché: si la borras, el modelo de Whisper se
   **vuelve a descargar** en la próxima transcripción (~460 MB, solo una vez).
-- Los vídeos de `~/Videos/Recetas` son **tus archivos**: borrarlos desde la app
+- Los vídeos de la carpeta vigilada (por defecto, `Recetas` dentro de tu carpeta
+  de vídeos del sistema) son **tus archivos**: borrarlos desde la app
   (botón de eliminar) o a mano los quita del disco; la base de datos guarda la
   referencia, por eso la app detecta si un vídeo "ya no existe".
 
